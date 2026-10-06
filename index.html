@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>UrKingslay — Seu estilo, do seu jeito</title>
-<meta name="description" content="UrKingslay — produtos, estilo e combinações em uma experiência premium.">
+<title>UR Kingslay — Seu estilo, seu momento</title>
+<meta name="description" content="UR Kingslay — vitrine de produtos com ofertas e combinações de estilo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
@@ -13,25 +13,25 @@
 <body>
 <header class="site-header">
   <div class="header-inner">
-    <button id="menuButton" class="icon-btn mobile-only" onclick="toggleMenu()" aria-label="Menu">☰</button>
-    <button class="brand" onclick="goHome()" aria-label="UrKingslay">
-      <span class="crown">♛</span><span>UrKingslay</span>
-    </button>
+    <button id="menuButton" class="icon-btn mobile-only" onclick="toggleMenu()" aria-label="Abrir menu">☰</button>
+    <button class="brand" onclick="goHome()" aria-label="UR Kingslay"><span class="crown">♛</span><span>UR Kingslay</span></button>
     <div class="header-actions">
       <button class="icon-btn" onclick="focusSearch()" aria-label="Buscar">⌕</button>
-      <button class="icon-btn cart-icon" onclick="toggleCart()" aria-label="Carrinho">♡<b id="cartCount">0</b></button>
+      <button class="icon-btn" onclick="openFavorites()" aria-label="Favoritos">♡<b id="favoriteCount">0</b></button>
+      <button class="icon-btn" onclick="toggleCart()" aria-label="Carrinho">🛒<b id="cartCount">0</b></button>
     </div>
   </div>
   <div class="desktop-search">
     <div class="search-box"><span>⌕</span><input id="searchInput" placeholder="O que você está procurando?"><button onclick="searchProducts()">Buscar</button></div>
   </div>
   <nav class="category-nav" id="categoryNav">
-    <button class="active" onclick="filterCategory('all')">Início</button>
-    <button onclick="filterCategory('celulares')">Celulares</button>
-    <button onclick="filterCategory('tv')">TV e Vídeo</button>
-    <button onclick="filterCategory('informatica')">Informática</button>
-    <button onclick="filterCategory('eletro')">Casa</button>
-    <button onclick="filterCategory('games')">Games</button>
+    <button data-category="all" class="active" onclick="filterCategory('all')">Início</button>
+    <button data-category="moda" onclick="filterCategory('moda')">Moda</button>
+    <button data-category="celulares" onclick="filterCategory('celulares')">Celulares</button>
+    <button data-category="tv" onclick="filterCategory('tv')">TV e Vídeo</button>
+    <button data-category="informatica" onclick="filterCategory('informatica')">Informática</button>
+    <button data-category="casa" onclick="filterCategory('casa')">Casa</button>
+    <button data-category="games" onclick="filterCategory('games')">Games</button>
     <button onclick="filterSale()">Ofertas</button>
   </nav>
 </header>
@@ -39,12 +39,12 @@
 <main>
 <section class="hero">
   <div class="hero-image-wrap">
-    <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=85" alt="Coleção UrKingslay">
+    <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1400&q=85" alt="Coleção UR Kingslay">
     <div class="hero-shade"></div>
     <div class="hero-content">
-      <span class="eyebrow">NOVA COLEÇÃO</span>
+      <span class="eyebrow">UR KINGSLAY</span>
       <h1>Seu estilo.<br><em>Seu momento.</em></h1>
-      <p>Descubra produtos escolhidos para combinar com você.</p>
+      <p>Encontre produtos, salve seus favoritos e descubra combinações para cada ocasião.</p>
       <button class="dark-btn" onclick="document.getElementById('produtos').scrollIntoView({behavior:'smooth'})">Explorar agora <span>→</span></button>
     </div>
   </div>
@@ -52,19 +52,12 @@
 
 <section class="categories-strip">
   <div class="section-title centered"><span>—</span><h2>Categorias</h2><span>—</span></div>
-  <div class="chips">
-    <button class="chip active" onclick="filterCategory('all')">Todos</button>
-    <button class="chip" onclick="filterCategory('celulares')">Celulares</button>
-    <button class="chip" onclick="filterCategory('tv')">TV</button>
-    <button class="chip" onclick="filterCategory('informatica')">Informática</button>
-    <button class="chip" onclick="filterCategory('eletro')">Casa</button>
-    <button class="chip" onclick="filterCategory('games')">Games</button>
-  </div>
+  <div id="categoryChips" class="chips"></div>
 </section>
 
 <section id="produtos" class="products-section">
   <div class="section-title">
-    <div><span class="eyebrow">ESCOLHIDOS PARA VOCÊ</span><h2 id="sectionTitle">Em destaque</h2></div>
+    <div><span class="eyebrow">CATÁLOGO</span><h2 id="sectionTitle">Em destaque</h2></div>
     <select id="sort" onchange="renderProducts()"><option value="featured">Destaques</option><option value="low">Menor preço</option><option value="high">Maior preço</option></select>
   </div>
   <div id="productGrid" class="product-grid"></div>
@@ -72,18 +65,35 @@
 
 <section class="offers">
   <div class="section-title centered"><span>—</span><h2>Ofertas</h2><span>—</span></div>
-  <p class="section-subtitle">Achados especiais por tempo limitado.</p>
-  <button class="dark-btn offers-btn" onclick="filterSale()">Ver todas as ofertas <span>→</span></button>
+  <p class="section-subtitle">Produtos com preço especial. A compra é finalizada na TikTok Shop.</p>
+  <button class="dark-btn offers-btn" onclick="filterSale()">Ver ofertas <span>→</span></button>
 </section>
-
 </main>
 
-<footer><div class="footer-brand"><span class="crown">♛</span><b>UrKingslay</b><p>Seu estilo. Seu momento.</p></div><div><b>Comprar</b><span>Celulares</span><span>Informática</span><span>Casa</span></div><div><b>Ajuda</b><span>Atendimento</span><span>Trocas e devoluções</span><span>Privacidade</span></div><small>© 2026 UrKingslay. Todos os direitos reservados.</small></footer>
+<footer>
+  <div class="footer-brand"><span class="crown">♛</span><b>UR Kingslay</b><p>Seu estilo. Seu momento.</p></div>
+  <div><b>Comprar</b><span onclick="filterCategory('moda')">Moda</span><span onclick="filterSale()">Ofertas</span></div>
+  <div><b>Como funciona</b><span>Escolha um produto</span><span>Salve ou combine seu estilo</span><span>Compre pela TikTok Shop</span></div>
+  <small>© 2026 UR Kingslay. Vitrine de produtos.</small>
+</footer>
 
-<aside id="cart" class="cart"><div class="cart-head"><h2>Seu carrinho</h2><button onclick="toggleCart()">×</button></div><div id="cartItems" class="cart-items"></div><div class="cart-bottom"><div><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div><button class="dark-btn" onclick="checkout()">Continuar compra</button></div></aside>
-<div id="overlay" class="overlay" onclick="toggleCart()"></div>
+<aside id="cart" class="side-panel">
+  <div class="panel-head"><h2>Seu carrinho</h2><button onclick="toggleCart()">×</button></div>
+  <div id="cartItems" class="panel-items"></div>
+  <div class="panel-bottom"><div><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div><button class="dark-btn" onclick="checkout()">Ir para a compra <span>→</span></button><small>A compra acontece pela TikTok Shop.</small></div>
+</aside>
+
+<aside id="favorites" class="side-panel">
+  <div class="panel-head"><h2>Favoritos</h2><button onclick="closeFavorites()">×</button></div>
+  <div id="favoriteItems" class="panel-items"></div>
+</aside>
+
+<div id="overlay" class="overlay" onclick="closePanels()"></div>
 <div id="modal" class="modal-wrap" onclick="closeModal(event)"><div class="modal" id="modalContent"></div></div>
 <div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/config.js"></script>
 <script src="/app.js"></script>
 </body>
 </html>

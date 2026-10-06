@@ -1,6 +1,6 @@
 const sb=supabase.createClient(UR_CONFIG.supabaseUrl,UR_CONFIG.supabaseKey);
 const state={
-  products:[],categories:[],occasions:[],
+  products:[],categories:[],occasions:[],recommendations:[],
   category:"all",search:"",
   cart:JSON.parse(localStorage.getItem("ur-kingslay-cart")||"[]"),
   favorites:JSON.parse(localStorage.getItem("ur-kingslay-favorites")||"[]"),
@@ -10,15 +10,18 @@ const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"B
 
 async function boot(){
   try{
-    const [p,c,o]=await Promise.all([
+    const [p,c,o,r]=await Promise.all([
       sb.from("products").select("*").eq("active",true).order("featured",{ascending:false}).order("created_at",{ascending:false}),
       sb.from("categories").select("*").eq("active",true).order("sort_order"),
-      sb.from("style_occasions").select("*").eq("active",true).order("sort_order")
+      sb.from("style_occasions").select("*").eq("active",true).order("sort_order"),
+      sb.from("style_recommendations").select("*").order("priority")
     ]);
     if(p.error) throw p.error;
     state.products=p.data||[];
     state.categories=c.data||[];
     state.occasions=o.data||[];
+    if(r.error) throw r.error;
+    state.recommendations=r.data||[];
     renderCategories();
     renderProducts();
     renderCart();
@@ -169,7 +172,12 @@ function showStyleOccasions(id){
 function generateStyle(id,occasion){
   const p=state.products.find(x=>x.id===id),o=state.occasions.find(x=>x.id===occasion);
   if(!p||!o)return;
-  let ids=state.products.filter(x=>x.id!==p.id&&x.is_fashion&&x.active).slice(0,3).map(x=>x.id);
+  const ids=state.recommendations
+    .filter(x=>x.product_id===p.id&&x.occasion_id===o.id)
+    .sort((a,b)=>a.priority-b.priority)
+    .map(x=>x.recommended_product_id)
+    .filter(id=>state.products.some(x=>x.id===id))
+    .slice(0,3);
   const flow=document.getElementById("styleFlow");
   flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Combinação sugerida</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">Partindo de <b>'+escapeHtml(p.name)+'</b>, estas peças completam o visual para essa ocasião.</p><div class="combine-grid">'+ids.map(x=>{const r=state.products.find(q=>q.id===x);return '<div class="combine-item" onclick="openProduct(\''+r.id+'\')"><img src="'+r.image_url+'" alt="'+escapeHtml(r.name)+'"><div><b>'+escapeHtml(r.name)+'</b><span>'+money(r.price)+'</span></div></div>'}).join("")+'</div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
 }

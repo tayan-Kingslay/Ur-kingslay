@@ -1,1 +1,107 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UR Kingslay — Sua loja, do seu jeito</title><meta name="description" content="UR Kingslay: eletrônicos, celulares, informática e ofertas."><link rel="stylesheet" href="/styles.css"></head><body><header class="topbar"><div class="topbar-inner"><button class="brand" onclick="goHome()">UR <span>KINGSLAY</span></button><div class="location">📍 Entregar em <b>todo o Brasil</b></div><div class="search"><input id="searchInput" placeholder="O que você está procurando?"><button onclick="searchProducts()">🔎</button></div><button class="account" onclick="showAccount()">👤 <span>Minha conta</span></button><button class="cart-btn" onclick="toggleCart()">🛒 <span>Carrinho</span><b id="cartCount">0</b></button></div></header><nav class="nav"><div class="nav-inner"><button onclick="filterCategory('all')">☰ Todas as categorias</button><button onclick="filterCategory('celulares')">Celulares</button><button onclick="filterCategory('tv')">TV e Vídeo</button><button onclick="filterCategory('informatica')">Informática</button><button onclick="filterCategory('eletro')">Eletrodomésticos</button><button onclick="filterCategory('games')">Games</button><button class="sale" onclick="filterSale()">🔥 Ofertas</button></div></nav><main><section class="hero"><div class="hero-copy"><span class="pill">OFERTA DE ESTREIA</span><h1>Seu próximo produto<br><strong>está aqui.</strong></h1><p>Preços especiais, variedade e uma experiência simples para comprar pelo celular.</p><button onclick="document.getElementById('produtos').scrollIntoView({behavior:'smooth'})">Comprar agora →</button></div><div class="hero-card"><div>OFERTAS</div><strong>ATÉ 40% OFF</strong><small>por tempo limitado</small></div></section><section class="benefits"><div>🚚 <b>Entrega</b><span>para todo o Brasil</span></div><div>🔒 <b>Compra segura</b><span>seus dados protegidos</span></div><div>💳 <b>Pagamento</b><span>cartão, Pix e mais</span></div><div>↩️ <b>Troca fácil</b><span>suporte quando precisar</span></div></section><section id="produtos" class="section"><div class="section-head"><div><span class="eyebrow">ESCOLHA O SEU</span><h2 id="sectionTitle">Produtos em destaque</h2></div><select id="sort" onchange="renderProducts()"><option value="featured">Mais relevantes</option><option value="low">Menor preço</option><option value="high">Maior preço</option></select></div><div id="productGrid" class="grid"></div></section><section class="categories"><h2>Compre por categoria</h2><div class="category-grid"><button onclick="filterCategory('celulares')">📱<b>Celulares</b><span>Smartphones e acessórios</span></button><button onclick="filterCategory('tv')">📺<b>TV e Vídeo</b><span>Imagem e entretenimento</span></button><button onclick="filterCategory('informatica')">💻<b>Informática</b><span>PCs e periféricos</span></button><button onclick="filterCategory('eletro')">🏠<b>Eletrodomésticos</b><span>Para sua casa</span></button><button onclick="filterCategory('games')">🎮<b>Games</b><span>Consoles e jogos</span></button></div></section><section class="newsletter"><div><span class="eyebrow">UR KINGSLAY</span><h2>Receba ofertas primeiro.</h2><p>Cadastre seu e-mail para ficar por dentro das novidades.</p></div><form onsubmit="subscribe(event)"><input type="email" required placeholder="Seu melhor e-mail"><button>Quero receber</button></form></section></main><footer><div><b>UR KINGSLAY</b><p>Uma nova forma de comprar.</p></div><div><b>Atendimento</b><span>Central de ajuda</span><span>Trocas e devoluções</span></div><div><b>Institucional</b><span>Sobre a UR Kingslay</span><span>Termos e privacidade</span></div><div><b>Pagamento</b><span>Pix • Cartão • Boleto</span></div><small>© 2026 UR Kingslay. Todos os direitos reservados.</small></footer><aside id="cart" class="cart"><div class="cart-head"><h2>Seu carrinho</h2><button onclick="toggleCart()">×</button></div><div id="cartItems" class="cart-items"></div><div class="cart-bottom"><div><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div><button onclick="checkout()">Continuar compra</button></div></aside><div id="overlay" class="overlay" onclick="toggleCart()"></div><div id="modal" class="modal-wrap" onclick="closeModal(event)"><div class="modal" id="modalContent"></div></div><div id="toast" class="toast"></div><script src="/app.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UrKingslay — Seu estilo, do seu jeito</title>
+<meta name="description" content="UrKingslay — produtos, estilo e combinações em uma experiência premium.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <button class="icon-btn mobile-only" onclick="toggleMenu()" aria-label="Menu">☰</button>
+    <button class="brand" onclick="goHome()" aria-label="UrKingslay">
+      <span class="crown">♛</span><span>UrKingslay</span>
+    </button>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="focusSearch()" aria-label="Buscar">⌕</button>
+      <button class="icon-btn" onclick="showAccount()" aria-label="Conta">♙</button>
+      <button class="icon-btn cart-icon" onclick="toggleCart()" aria-label="Carrinho">♡<b id="cartCount">0</b></button>
+    </div>
+  </div>
+  <div class="desktop-search">
+    <div class="search-box"><span>⌕</span><input id="searchInput" placeholder="O que você está procurando?"><button onclick="searchProducts()">Buscar</button></div>
+  </div>
+  <nav class="category-nav" id="categoryNav">
+    <button class="active" onclick="filterCategory('all')">Início</button>
+    <button onclick="filterCategory('celulares')">Celulares</button>
+    <button onclick="filterCategory('tv')">TV e Vídeo</button>
+    <button onclick="filterCategory('informatica')">Informática</button>
+    <button onclick="filterCategory('eletro')">Casa</button>
+    <button onclick="filterCategory('games')">Games</button>
+    <button onclick="filterSale()">Ofertas</button>
+  </nav>
+</header>
+
+<main>
+<section class="hero">
+  <div class="hero-image-wrap">
+    <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=85" alt="Coleção UrKingslay">
+    <div class="hero-shade"></div>
+    <div class="hero-content">
+      <span class="eyebrow">NOVA COLEÇÃO</span>
+      <h1>Seu estilo.<br><em>Seu momento.</em></h1>
+      <p>Descubra produtos escolhidos para combinar com você.</p>
+      <button class="dark-btn" onclick="document.getElementById('produtos').scrollIntoView({behavior:'smooth'})">Explorar agora <span>→</span></button>
+    </div>
+  </div>
+</section>
+
+<section class="categories-strip">
+  <div class="section-title centered"><span>—</span><h2>Categorias</h2><span>—</span></div>
+  <div class="chips">
+    <button class="chip active" onclick="filterCategory('all')">Todos</button>
+    <button class="chip" onclick="filterCategory('celulares')">Celulares</button>
+    <button class="chip" onclick="filterCategory('tv')">TV</button>
+    <button class="chip" onclick="filterCategory('informatica')">Informática</button>
+    <button class="chip" onclick="filterCategory('eletro')">Casa</button>
+    <button class="chip" onclick="filterCategory('games')">Games</button>
+  </div>
+</section>
+
+<section id="produtos" class="products-section">
+  <div class="section-title">
+    <div><span class="eyebrow">ESCOLHIDOS PARA VOCÊ</span><h2 id="sectionTitle">Em destaque</h2></div>
+    <select id="sort" onchange="renderProducts()"><option value="featured">Destaques</option><option value="low">Menor preço</option><option value="high">Maior preço</option></select>
+  </div>
+  <div id="productGrid" class="product-grid"></div>
+</section>
+
+<section class="style-banner">
+  <div class="style-copy">
+    <span class="eyebrow">UR KINGSLAY</span>
+    <h2>Combine<br><em>seu estilo.</em></h2>
+    <p>Escolha um produto e descubra outras peças que ficam perfeitas com ele.</p>
+    <button class="outline-btn" onclick="openProduct(products[0].id)">Ver combinações <span>→</span></button>
+  </div>
+  <div class="style-cards">
+    <div class="style-card card-a"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" alt="Produto"></div>
+    <div class="style-card card-b"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80" alt="Produto"></div>
+  </div>
+</section>
+
+<section class="offers">
+  <div class="section-title centered"><span>—</span><h2>Ofertas</h2><span>—</span></div>
+  <p class="section-subtitle">Achados especiais por tempo limitado.</p>
+  <button class="dark-btn offers-btn" onclick="filterSale()">Ver todas as ofertas <span>→</span></button>
+</section>
+
+<section class="newsletter">
+  <div><span class="eyebrow">UR KINGSLAY</span><h2>Fique por dentro.</h2><p>Receba novidades e ofertas diretamente no seu e-mail.</p></div>
+  <form onsubmit="subscribe(event)"><input type="email" required placeholder="Seu melhor e-mail"><button class="dark-btn">Cadastrar</button></form>
+</section>
+</main>
+
+<footer><div class="footer-brand"><span class="crown">♛</span><b>UrKingslay</b><p>Seu estilo. Seu momento.</p></div><div><b>Comprar</b><span>Celulares</span><span>Informática</span><span>Casa</span></div><div><b>Ajuda</b><span>Atendimento</span><span>Trocas e devoluções</span><span>Privacidade</span></div><small>© 2026 UrKingslay. Todos os direitos reservados.</small></footer>
+
+<aside id="cart" class="cart"><div class="cart-head"><h2>Seu carrinho</h2><button onclick="toggleCart()">×</button></div><div id="cartItems" class="cart-items"></div><div class="cart-bottom"><div><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div><button class="dark-btn" onclick="checkout()">Continuar compra</button></div></aside>
+<div id="overlay" class="overlay" onclick="toggleCart()"></div>
+<div id="modal" class="modal-wrap" onclick="closeModal(event)"><div class="modal" id="modalContent"></div></div>
+<div id="toast" class="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>

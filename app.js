@@ -1,36 +1,182 @@
-const products=[
-{id:1,name:"Blusa UrKingslay Basic",category:"moda",price:129.9,old:159.9,discount:19,buyUrl:"",isFashion:true,img:"https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=700&q=85"},
-{id:2,name:"Shorts Preto Casual",category:"moda",price:89.9,old:119.9,discount:25,buyUrl:"",isFashion:true,img:"https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=700&q=85"},
-{id:3,name:"Calça Bege Wide Leg",category:"moda",price:119.9,old:159.9,discount:25,buyUrl:"",isFashion:true,img:"https://images.unsplash.com/photo-1594633313593-bab3825d0caf?auto=format&fit=crop&w=700&q=85"},
-{id:4,name:"Tênis Branco Casual",category:"moda",price:159.9,old:199.9,discount:20,buyUrl:"",isFashion:true,img:"https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=700&q=85"},
-{id:5,name:"Saia Estampada Floral",category:"moda",price:99.9,old:139.9,discount:29,buyUrl:"",isFashion:true,img:"https://images.unsplash.com/photo-1583496661160-fb5886a13d27?auto=format&fit=crop&w=700&q=85"},
-{id:6,name:"Bolsa Preta Matelassê",category:"moda",price:139.9,old:179.9,discount:22,buyUrl:"",isFashion:true,img:"https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&w=700&q=85"},
-{id:7,name:"Camisa Branca Oversized",category:"moda",price:109.9,old:149.9,discount:27,buyUrl:"",isFashion:true,img:"https://images.unsplash.com/photo-1605763240000-7e93b172d754?auto=format&fit=crop&w=700&q=85"},
-{id:8,name:"Jaqueta Jeans Clara",category:"moda",price:179.9,old:229.9,discount:22,buyUrl:"",isFashion:true,img:"https://images.unsplash.com/photo-1543076447-215ad9ba6923?auto=format&fit=crop&w=700&q=85"}];
-let state={category:"all",search:"",cart:JSON.parse(localStorage.getItem("ur-cart")||"[]"),favorites:JSON.parse(localStorage.getItem("ur-favorites")||"[]")};
-const money=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-function filtered(){let x=products.filter(p=>(state.category==="all"||p.category===state.category)&&p.name.toLowerCase().includes(state.search.toLowerCase()));const s=document.getElementById("sort").value;if(s==="low")x.sort((a,b)=>a.price-b.price);if(s==="high")x.sort((a,b)=>b.price-a.price);return x}
-function renderProducts(){const g=document.getElementById("productGrid"),x=filtered();g.innerHTML=x.length?x.map(p=>'<article class="product" onclick="openProduct('+p.id+')"><span class="tag">'+p.discount+'% OFF</span><img src="'+p.img+'" alt="'+p.name+'" loading="lazy"><div class="stars">★★★★★ <small>(4.8)</small></div><h3>'+p.name+'</h3><div class="old">'+money(p.old)+'</div><div class="price">'+money(p.price)+'</div><div class="pix">à vista no Pix</div><div class="product-hint">Toque para ver opções →</div></article>').join(""):'<div class="empty">Nenhum produto encontrado.<br><button onclick="clearSearch()">Limpar filtros</button></div>'}
-function filterCategory(c){state.category=c;state.search="";document.getElementById("searchInput").value="";const names={moda:"Moda"};document.getElementById("sectionTitle").textContent=c==="all"?"Em destaque":(names[c]||"Produtos");document.querySelectorAll(".category-nav button,.chip").forEach(b=>b.classList.remove("active"));renderProducts();document.getElementById("produtos").scrollIntoView({behavior:"smooth"});toggleMenu(false)}
-function filterSale(){state.category="all";state.search="";document.getElementById("sectionTitle").textContent="Ofertas";renderProducts();document.getElementById("produtos").scrollIntoView({behavior:"smooth"});toggleMenu(false)}
-function searchProducts(){state.search=document.getElementById("searchInput").value.trim();state.category="all";document.getElementById("sectionTitle").textContent=state.search?'Resultados para "'+state.search+'"':"Em destaque";renderProducts();document.getElementById("produtos").scrollIntoView({behavior:"smooth"})}
-function focusSearch(){document.querySelector(".desktop-search").scrollIntoView({behavior:"smooth"});setTimeout(()=>document.getElementById("searchInput").focus(),250)}
+const sb=supabase.createClient(UR_CONFIG.supabaseUrl,UR_CONFIG.supabaseKey);
+const state={
+  products:[],categories:[],occasions:[],
+  category:"all",search:"",
+  cart:JSON.parse(localStorage.getItem("ur-kingslay-cart")||"[]"),
+  favorites:JSON.parse(localStorage.getItem("ur-kingslay-favorites")||"[]"),
+  loading:true
+};
+const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+
+async function boot(){
+  try{
+    const [p,c,o]=await Promise.all([
+      sb.from("products").select("*").eq("active",true).order("featured",{ascending:false}).order("created_at",{ascending:false}),
+      sb.from("categories").select("*").eq("active",true).order("sort_order"),
+      sb.from("style_occasions").select("*").eq("active",true).order("sort_order")
+    ]);
+    if(p.error) throw p.error;
+    state.products=p.data||[];
+    state.categories=c.data||[];
+    state.occasions=o.data||[];
+    renderCategories();
+    renderProducts();
+    renderCart();
+    renderFavorites();
+  }catch(e){
+    console.error(e);
+    document.getElementById("productGrid").innerHTML='<div class="empty">Não foi possível carregar o catálogo agora.<br><button onclick="location.reload()">Tentar novamente</button></div>';
+    showToast("Não foi possível carregar os produtos");
+  }finally{state.loading=false}
+}
+
+function renderCategories(){
+  const nav=document.getElementById("categoryNav");
+  const chips=document.getElementById("categoryChips");
+  const visible=state.categories.filter(c=>c.id!=="all");
+  const labels=[{id:"all",name:"Todos"},...visible];
+  chips.innerHTML=labels.map(c=>'<button class="chip '+(state.category===c.id?"active":"")+'" onclick="filterCategory(\''+c.id+'\')">'+c.name+'</button>').join("");
+  nav.querySelectorAll("[data-category]").forEach(b=>b.classList.toggle("active",b.dataset.category===state.category));
+}
+
+function filtered(){
+  let list=state.products.filter(p=>(state.category==="all"||p.category_id===state.category)&&(!state.search||p.name.toLowerCase().includes(state.search.toLowerCase())||p.description.toLowerCase().includes(state.search.toLowerCase())));
+  const sort=document.getElementById("sort").value;
+  if(sort==="low")list.sort((a,b)=>Number(a.price)-Number(b.price));
+  if(sort==="high")list.sort((a,b)=>Number(b.price)-Number(a.price));
+  return list;
+}
+
+function renderProducts(){
+  const g=document.getElementById("productGrid"),list=filtered();
+  g.innerHTML=list.length?list.map(productCard).join(""):'<div class="empty">Nenhum produto encontrado.<br><button onclick="clearFilters()">Limpar filtros</button></div>';
+}
+
+function productCard(p){
+  return '<article class="product" onclick="openProduct(\''+p.id+'\')">'+
+    (p.discount?'<span class="tag">'+p.discount+'% OFF</span>':'')+
+    '<img src="'+p.image_url+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'+
+    '<div class="stars">★★★★★ <small>4.8</small></div>'+
+    '<h3>'+escapeHtml(p.name)+'</h3>'+
+    (p.old_price?'<div class="old">'+money(p.old_price)+'</div>':'')+
+    '<div class="price">'+money(p.price)+'</div><div class="pix">'+escapeHtml(p.pix_label)+'</div>'+
+    '<div class="product-hint">Toque para ver opções →</div></article>';
+}
+
+function filterCategory(c){
+  state.category=c;state.search="";
+  document.getElementById("searchInput").value="";
+  const cat=state.categories.find(x=>x.id===c);
+  document.getElementById("sectionTitle").textContent=c==="all"?"Em destaque":(cat?.name||"Produtos");
+  renderCategories();renderProducts();toggleMenu(false);
+  document.getElementById("produtos").scrollIntoView({behavior:"smooth"});
+}
+function filterSale(){
+  state.category="all";state.search="";
+  document.getElementById("searchInput").value="";
+  document.getElementById("sectionTitle").textContent="Ofertas";
+  const g=document.getElementById("productGrid");
+  const list=state.products.filter(p=>p.discount>0);
+  g.innerHTML=list.length?list.map(productCard).join(""):'<div class="empty">Nenhuma oferta disponível.</div>';
+  renderCategories();toggleMenu(false);
+  document.getElementById("produtos").scrollIntoView({behavior:"smooth"});
+}
+function searchProducts(){
+  state.search=document.getElementById("searchInput").value.trim();state.category="all";
+  document.getElementById("sectionTitle").textContent=state.search?'Resultados para "'+escapeHtml(state.search)+'"':"Em destaque";
+  renderCategories();renderProducts();
+  document.getElementById("produtos").scrollIntoView({behavior:"smooth"});
+}
+function focusSearch(){document.querySelector(".desktop-search").scrollIntoView({behavior:"smooth"});setTimeout(()=>document.getElementById("searchInput").focus(),200)}
 document.getElementById("searchInput").addEventListener("keydown",e=>{if(e.key==="Enter")searchProducts()});
-function addCart(id){const item=state.cart.find(x=>x.id===id);if(item)item.qty++;else state.cart.push({id,qty:1});saveCart();showToast("Produto salvo no seu carrinho")}
-function saveCart(){localStorage.setItem("ur-cart",JSON.stringify(state.cart));renderCart()}
-function renderCart(){const el=document.getElementById("cartItems"),count=state.cart.reduce((n,x)=>n+x.qty,0),total=state.cart.reduce((n,x)=>n+(products.find(p=>p.id===x.id)?.price||0)*x.qty,0);document.getElementById("cartCount").textContent=count;document.getElementById("cartTotal").textContent=money(total);el.innerHTML=state.cart.length?state.cart.map(x=>{const p=products.find(p=>p.id===x.id);return '<div class="cart-row"><img src="'+p.img+'"><div><h4>'+p.name+'</h4><div>'+money(p.price)+'</div><div class="qty">Qtd: '+x.qty+' · <button onclick="removeCart('+p.id+')">remover</button></div></div><b>'+money(p.price*x.qty)+'</b></div>'}).join(""):'<div class="empty">Seu carrinho está vazio.</div>'}
+
+function addCart(id){
+  const item=state.cart.find(x=>x.id===id);
+  if(item)item.qty++;else state.cart.push({id,qty:1});
+  saveCart();showToast("Produto adicionado ao carrinho");
+}
+function saveCart(){localStorage.setItem("ur-kingslay-cart",JSON.stringify(state.cart));renderCart()}
+function renderCart(){
+  const el=document.getElementById("cartItems"),items=state.cart.map(x=>({x,p:state.products.find(p=>p.id===x.id)})).filter(v=>v.p);
+  const count=items.reduce((n,v)=>n+v.x.qty,0),total=items.reduce((n,v)=>n+Number(v.p.price)*v.x.qty,0);
+  document.getElementById("cartCount").textContent=count;document.getElementById("cartTotal").textContent=money(total);
+  el.innerHTML=items.length?items.map(v=>'<div class="cart-row"><img src="'+v.p.image_url+'"><div><h4>'+escapeHtml(v.p.name)+'</h4><div>'+money(v.p.price)+'</div><div class="qty">Qtd: '+v.x.qty+' · <button onclick="removeCart(\''+v.p.id+'\')">remover</button></div></div><b>'+money(Number(v.p.price)*v.x.qty)+'</b></div>').join(""):'<div class="empty">Seu carrinho está vazio.</div>';
+}
 function removeCart(id){state.cart=state.cart.filter(x=>x.id!==id);saveCart()}
-function toggleCart(){document.getElementById("cart").classList.toggle("open");document.getElementById("overlay").classList.toggle("open")}
-function toggleMenu(force){const n=document.getElementById("categoryNav"),b=document.getElementById("menuButton");if(force===false){n.classList.remove("menu-open");b.classList.remove("menu-active");b.textContent="☰";return}const open=n.classList.toggle("menu-open");b.classList.toggle("menu-active",open);b.textContent=open?"×":"☰"}
-function compatibleItems(p){return products.filter(x=>x.id!==p.id&&x.isFashion).slice(0,3)}
-function combineHtml(p){if(!p.isFashion)return "";const items=compatibleItems(p);return '<section class="combine-box"><div class="eyebrow">UR KINGSLAY</div><h3>✦ Combinar Estilo</h3><p>Veja peças que combinam com esta roupa.</p>'+(!items.length?'<p>Em breve teremos outras peças para completar este look.</p>':'<div class="combine-grid">'+items.map(x=>'<div class="combine-item" onclick="openProduct('+x.id+')"><img src="'+x.img+'" alt="'+x.name+'"><div><b>'+x.name+'</b><span>'+money(x.price)+'</span></div></div>').join("")+'</div>')+'</section>'}
-function openProduct(id){const p=products.find(x=>x.id===id);const fav=state.favorites.includes(p.id);document.getElementById("modalContent").innerHTML='<div class="modal-product"><img src="'+p.img+'" alt="'+p.name+'"><div><div class="eyebrow">UR KINGSLAY</div><h2>'+p.name+'</h2><div class="stars">★★★★★ 4.8</div><div class="old">'+money(p.old)+'</div><div class="price">'+money(p.price)+'</div><p class="pix">à vista no Pix</p><p>Veja os detalhes do produto e escolha como deseja continuar.</p><div class="modal-actions"><button class="option-btn primary" onclick="addCart('+p.id+');closeModal()">🛒 Carrinho</button><button class="option-btn favorite '+(fav?"selected":"")+'" onclick="toggleFavorite('+p.id+')">'+(fav?"♥":"♡")+' Favoritar</button><button class="option-btn buy-now" onclick="buyNow('+p.id+')">Comprar agora <span>→</span></button></div>'+combineHtml(p)+'</div></div>';document.getElementById("modal").classList.add("open")}
+function toggleCart(force){
+  const panel=document.getElementById("cart"),open=force===true||(!panel.classList.contains("open")&&force!==false);
+  closeFavorites();panel.classList.toggle("open",open);document.getElementById("overlay").classList.toggle("open",open);
+}
+function checkout(){
+  const first=state.cart.map(x=>state.products.find(p=>p.id===x.id)).find(Boolean);
+  if(first?.buy_url)window.open(first.buy_url,"_blank","noopener,noreferrer");
+  else showToast("A compra é finalizada pela TikTok Shop de cada produto");
+}
+
+function toggleFavorite(id){
+  const i=state.favorites.indexOf(id);
+  if(i>=0)state.favorites.splice(i,1);else state.favorites.push(id);
+  localStorage.setItem("ur-kingslay-favorites",JSON.stringify(state.favorites));
+  renderFavorites();renderHeaderCounts();
+}
+function renderHeaderCounts(){document.getElementById("favoriteCount").textContent=state.favorites.length}
+function renderFavorites(){
+  renderHeaderCounts();
+  const items=state.favorites.map(id=>state.products.find(p=>p.id===id)).filter(Boolean);
+  document.getElementById("favoriteItems").innerHTML=items.length?items.map(p=>'<div class="fav-row" onclick="openProduct(\''+p.id+'\')"><img src="'+p.image_url+'"><div><b>'+escapeHtml(p.name)+'</b><span>'+money(p.price)+'</span></div><button onclick="event.stopPropagation();toggleFavorite(\''+p.id+'\')">♥</button></div>').join(""):'<div class="empty">Você ainda não favoritou nenhum produto.</div>';
+}
+function openFavorites(){closeCart();document.getElementById("favorites").classList.add("open");document.getElementById("overlay").classList.add("open")}
+function closeFavorites(){document.getElementById("favorites").classList.remove("open")}
+function closeCart(){document.getElementById("cart").classList.remove("open")}
+function closePanels(){closeCart();closeFavorites();document.getElementById("overlay").classList.remove("open")}
+
+function toggleMenu(force){
+  const n=document.getElementById("categoryNav"),b=document.getElementById("menuButton");
+  if(force===false){n.classList.remove("menu-open");b.classList.remove("menu-active");b.textContent="☰";return}
+  const open=n.classList.toggle("menu-open");b.classList.toggle("menu-active",open);b.textContent=open?"×":"☰";
+}
+
+async function openProduct(id){
+  const p=state.products.find(x=>x.id===id);if(!p)return;
+  const fav=state.favorites.includes(p.id);
+  document.getElementById("modalContent").innerHTML=
+  '<div class="modal-product"><img src="'+p.image_url+'" alt="'+escapeHtml(p.name)+'"><div>'+
+  '<div class="eyebrow">UR KINGSLAY</div><h2>'+escapeHtml(p.name)+'</h2><div class="stars">★★★★★ 4.8</div>'+
+  (p.old_price?'<div class="old">'+money(p.old_price)+'</div>':'')+'<div class="price">'+money(p.price)+'</div>'+
+  '<p class="pix">'+escapeHtml(p.pix_label)+'</p><p class="description">'+escapeHtml(p.description)+'</p>'+
+  '<div class="modal-actions"><button class="option-btn primary" onclick="addCart(\''+p.id+'\');closeModal()">🛒 Carrinho</button>'+
+  '<button class="option-btn favorite '+(fav?"selected":"")+'" onclick="toggleFavorite(\''+p.id+'\');openProduct(\''+p.id+'\')">'+(fav?"♥":"♡")+' Favoritar</button>'+
+  '<button class="option-btn buy-now" onclick="buyNow(\''+p.id+'\')">Comprar agora <span>→</span></button></div>'+
+  combineHtml(p)+'</div></div>';
+  document.getElementById("modal").classList.add("open");
+}
 function closeModal(e){if(!e||e.target.id==="modal")document.getElementById("modal").classList.remove("open")}
-function toggleFavorite(id){const i=state.favorites.indexOf(id);if(i>=0)state.favorites.splice(i,1);else state.favorites.push(id);localStorage.setItem("ur-favorites",JSON.stringify(state.favorites));openProduct(id);showToast(i>=0?"Removido dos favoritos":"Adicionado aos favoritos")}
-function buyNow(id){const p=products.find(x=>x.id===id);if(!p.buyUrl){showToast("O link da TikTok Shop deste produto ainda não foi cadastrado");return}window.open(p.buyUrl,"_blank","noopener,noreferrer")}
-function checkout(){showToast("O carrinho é salvo neste celular. A compra acontece pela TikTok Shop.")}
-function subscribe(e){e.preventDefault();showToast("Cadastro realizado!");e.target.reset()}
-function showToast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");setTimeout(()=>x.classList.remove("show"),2200)}
-function clearSearch(){state.search="";state.category="all";document.getElementById("searchInput").value="";document.getElementById("sectionTitle").textContent="Em destaque";renderProducts()}
-function goHome(){state.category="all";state.search="";document.getElementById("sectionTitle").textContent="Em destaque";document.getElementById("searchInput").value="";window.scrollTo({top:0,behavior:"smooth"});renderProducts()}
-renderProducts();renderCart();
+
+function buyNow(id){
+  const p=state.products.find(x=>x.id===id);
+  if(p?.buy_url)window.open(p.buy_url,"_blank","noopener,noreferrer");
+  else showToast("O link da TikTok Shop deste produto ainda não foi cadastrado");
+}
+
+function combineHtml(p){
+  if(!p.is_fashion)return "";
+  return '<section class="combine-box"><div class="eyebrow">UR KINGSLAY · ESTILO</div><h3>✦ Combinar Estilo</h3><p>Escolha a ocasião e eu monto uma combinação usando o catálogo.</p><button class="combine-start" onclick="showStyleOccasions(\''+p.id+'\')">Combinar meu estilo ✦</button><div id="styleFlow"></div></section>';
+}
+function showStyleOccasions(id){
+  const flow=document.getElementById("styleFlow");
+  flow.innerHTML='<div class="occasion-grid">'+state.occasions.map(o=>'<button onclick="generateStyle(\''+id+'\',\''+o.id+'\')">'+o.icon+' '+escapeHtml(o.name)+'</button>').join("")+'</div>';
+}
+function generateStyle(id,occasion){
+  const p=state.products.find(x=>x.id===id),o=state.occasions.find(x=>x.id===occasion);
+  if(!p||!o)return;
+  let ids=state.products.filter(x=>x.id!==p.id&&x.is_fashion&&x.active).slice(0,3).map(x=>x.id);
+  const flow=document.getElementById("styleFlow");
+  flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Combinação sugerida</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">Partindo de <b>'+escapeHtml(p.name)+'</b>, estas peças completam o visual para essa ocasião.</p><div class="combine-grid">'+ids.map(x=>{const r=state.products.find(q=>q.id===x);return '<div class="combine-item" onclick="openProduct(\''+r.id+'\')"><img src="'+r.image_url+'" alt="'+escapeHtml(r.name)+'"><div><b>'+escapeHtml(r.name)+'</b><span>'+money(r.price)+'</span></div></div>'}).join("")+'</div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
+}
+
+function clearFilters(){state.category="all";state.search="";document.getElementById("searchInput").value="";document.getElementById("sectionTitle").textContent="Em destaque";renderCategories();renderProducts()}
+function goHome(){clearFilters();window.scrollTo({top:0,behavior:"smooth"})}
+function showToast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.classList.remove("show"),2400)}
+function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
+
+boot();

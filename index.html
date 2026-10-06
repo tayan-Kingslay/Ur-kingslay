@@ -19,7 +19,6 @@
     </button>
     <div class="header-actions">
       <button class="icon-btn" onclick="focusSearch()" aria-label="Buscar">⌕</button>
-      <button class="icon-btn" onclick="showAccount()" aria-label="Conta">♙</button>
       <button class="icon-btn cart-icon" onclick="toggleCart()" aria-label="Carrinho">♡<b id="cartCount">0</b></button>
     </div>
   </div>
@@ -69,19 +68,6 @@
     <select id="sort" onchange="renderProducts()"><option value="featured">Destaques</option><option value="low">Menor preço</option><option value="high">Maior preço</option></select>
   </div>
   <div id="productGrid" class="product-grid"></div>
-</section>
-
-<section class="style-banner">
-  <div class="style-copy">
-    <span class="eyebrow">UR KINGSLAY</span>
-    <h2>Combine<br><em>seu estilo.</em></h2>
-    <p>Escolha um produto e descubra outras peças que ficam perfeitas com ele.</p>
-    <button class="outline-btn" onclick="openProduct(products[0].id)">Ver combinações <span>→</span></button>
-  </div>
-  <div class="style-cards">
-    <div class="style-card card-a"><img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=600&q=80" alt="Produto"></div>
-    <div class="style-card card-b"><img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80" alt="Produto"></div>
-  </div>
 </section>
 
 <section class="offers">

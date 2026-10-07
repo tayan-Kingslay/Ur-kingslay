@@ -193,6 +193,32 @@ async function generateStyle(id,occasion){
     flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Não consegui montar agora</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">O catálogo ainda está em fase de teste. Quando houver peças compatíveis, a IA monta o look completo e escolhe os acessórios.</p><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Tentar outra ocasião</button></div>';
   }
 }
+function approveStyle(){
+  if(!state.currentStyle.recs.length)return;
+  renderLookPage(state.currentStyle.recs,state.currentStyle.occasionId,state.currentStyle.baseId);
+  document.getElementById("modal").classList.remove("open");
+  document.getElementById("lookPage").classList.add("open");
+  document.getElementById("lookPage").setAttribute("aria-hidden","false");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function rejectStyle(){
+  const flow=document.getElementById("styleFlow");
+  flow.innerHTML='<div class="style-feedback rejected"><b>Beleza. Vamos ajustar.</b><span>Escolha outra ocasião para eu tentar uma combinação diferente.</span><div><button onclick="showStyleOccasions(\\''+state.currentStyle.baseId+'\\')">Escolher outra ocasião</button><button onclick="redoStyle()">↻ Refazer tudo</button></div></div>';
+}
+function redoStyle(){
+  if(state.currentStyle.baseId&&state.currentStyle.occasionId) generateStyle(state.currentStyle.baseId,state.currentStyle.occasionId);
+}
+function renderLookPage(recs,occasionId,baseId){
+  const o=state.occasions.find(x=>x.id===occasionId),base=state.products.find(x=>x.id===baseId);
+  document.getElementById("lookOccasion").textContent=(o?.icon||"✦")+" "+(o?.name||"Look");
+  const all=[...(base?[{id:base.id,name:base.name,price:base.price,image_url:base.image_url,role_label:"Peça principal"}]:[]),...recs];
+  document.getElementById("lookProductGrid").innerHTML=all.map(p=>'<article class="look-product" onclick="buyNow(\\''+p.id+'\\')"><img src="'+p.image_url+'" alt="'+escapeHtml(p.name)+'"><div><span>'+escapeHtml(p.role_label||"Peça")+'</span><b>'+escapeHtml(p.name)+'</b><strong>'+money(p.price)+'</strong><button>Ver na TikTok Shop →</button></div></article>').join("");
+}
+function closeLookPage(){
+  document.getElementById("lookPage").classList.remove("open");
+  document.getElementById("lookPage").setAttribute("aria-hidden","true");
+}
+
 function clearFilters(){state.category="all";state.search="";document.getElementById("searchInput").value="";document.getElementById("sectionTitle").textContent="Em destaque";renderCategories();renderProducts()}
 function goHome(){clearFilters();window.scrollTo({top:0,behavior:"smooth"})}
 function showToast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.classList.remove("show"),2400)}

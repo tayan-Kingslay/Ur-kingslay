@@ -21,6 +21,29 @@
       <button class="primary-btn" type="submit">Entrar no ADM →</button>
       <div id="loginError" class="error"></div>
     </form>
+    <div class="auth-switch">
+      <span>Ainda não tenho acesso</span>
+      <button type="button" id="showSignupBtn">Criar primeiro administrador</button>
+    </div>
+  </div>
+</div>
+
+<div id="signupView" class="auth-view hidden">
+  <div class="auth-card">
+    <div class="brand"><span>♛</span> UR Kingslay</div>
+    <span class="eyebrow">PRIMEIRO ACESSO</span>
+    <h1>Criar administrador</h1>
+    <p>Use um e-mail exclusivo do projeto e uma senha forte. Nenhum Gmail pessoal é necessário.</p>
+    <form id="signupForm">
+      <label>E-mail<input id="signupEmail" type="email" autocomplete="email" required placeholder="admin@seu-dominio.com"></label>
+      <label>Senha<input id="signupPassword" type="password" autocomplete="new-password" minlength="10" required placeholder="mínimo de 10 caracteres"></label>
+      <label>Confirmar senha<input id="signupPassword2" type="password" autocomplete="new-password" minlength="10" required placeholder="repita a senha"></label>
+      <button class="primary-btn" type="submit" id="signupBtn">Criar administrador →</button>
+      <div id="signupError" class="error"></div>
+    </form>
+    <div class="auth-switch">
+      <button type="button" id="backLoginBtn">← Voltar para entrar</button>
+    </div>
   </div>
 </div>
 

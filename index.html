@@ -13,7 +13,7 @@
 <body>
 <header class="site-header">
   <div class="header-inner">
-    <button id="menuButton" class="icon-btn mobile-only" onclick="toggleMenu()" aria-label="Abrir menu">☰</button>
+    <button id="menuButton" class="icon-btn mobile-only" aria-label="Abrir menu" aria-expanded="false" type="button">☰</button>
     <button class="brand" onclick="goHome()" aria-label="UR Kingslay"><span class="crown">♛</span><span>UR Kingslay</span></button>
     <div class="header-actions">
       <button class="icon-btn" onclick="focusSearch()" aria-label="Buscar">⌕</button>
@@ -118,5 +118,23 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/config.js"></script>
 <script src="/app.js"></script>
+<script>
+(function(){
+  const b=document.getElementById("menuButton"), n=document.getElementById("categoryNav");
+  if(!b||!n)return;
+  window.toggleMenu=function(force){
+    const shouldOpen=force===true?true:force===false?false:!n.classList.contains("menu-open");
+    n.classList.toggle("menu-open",shouldOpen);
+    b.classList.toggle("menu-active",shouldOpen);
+    b.textContent=shouldOpen?"×":"☰";
+    b.setAttribute("aria-expanded",String(shouldOpen));
+  };
+  b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();window.toggleMenu();});
+  document.addEventListener("click",function(e){
+    if(!n.classList.contains("menu-open"))return;
+    if(!n.contains(e.target)&&e.target!==b)window.toggleMenu(false);
+  });
+})();
+</script>
 </body>
 </html>

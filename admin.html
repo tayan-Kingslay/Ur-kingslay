@@ -63,6 +63,7 @@
   <div class="tabs">
     <button class="tab active" data-tab="products">Produtos</button>
     <button class="tab" data-tab="categories">Categorias</button>
+    <button class="tab" data-tab="site">🎨 Personalizar Site</button>
   </div>
 
   <section id="productsTab" class="tab-panel">
@@ -79,6 +80,30 @@
       <button class="primary-btn" id="newCategoryBtn">+ Nova categoria</button>
     </div>
     <div id="categoryList" class="category-list"></div>
+  </section>
+
+  <section id="siteTab" class="tab-panel hidden">
+    <div class="toolbar"><div><span class="eyebrow">IDENTIDADE & APARÊNCIA</span><h2>Personalizar Site</h2><p>Troque a logo, o banner principal, textos e cores sem editar o código.</p></div></div>
+    <form id="siteForm" class="site-editor">
+      <div class="site-card"><span class="eyebrow">LOGO</span><h3>Identidade da marca</h3><div class="form-grid">
+        <label>Nome exibido<input id="siteLogoText" maxlength="60"></label>
+        <label>Logo por URL<input id="siteLogoUrl" type="url" placeholder="Opcional"></label>
+        <label class="full">Enviar nova logo<input id="siteLogoFile" type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml"></label>
+      </div><div class="site-preview logo-preview"><img id="siteLogoPreview" alt=""><span id="siteLogoPlaceholder">♛ UR Kingslay</span></div></div>
+      <div class="site-card"><span class="eyebrow">BANNER PRINCIPAL</span><h3>Hero da página inicial</h3><div class="form-grid">
+        <label class="full">Título (HTML simples permitido)<input id="siteHeroTitle"></label>
+        <label class="full">Frase<input id="siteHeroSubtitle"></label>
+        <label>Texto do botão<input id="siteHeroButtonText"></label>
+        <label>Destino do botão<input id="siteHeroButtonUrl" placeholder="#produtos ou https://..."></label>
+        <label class="full">Imagem por URL<input id="siteHeroImageUrl" type="url"></label>
+        <label class="full">Enviar imagem principal<input id="siteHeroImageFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <label class="full">Imagem específica para celular (opcional)<input id="siteHeroMobileImageFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+      </div><div class="site-preview hero-preview"><img id="siteHeroPreview" alt=""><span>Prévia do banner</span></div></div>
+      <div class="site-card"><span class="eyebrow">CORES</span><h3>Aparência</h3><div class="color-grid"><label>Principal<input id="sitePrimaryColor" type="color"></label><label>Destaque<input id="siteAccentColor" type="color"></label><label>Fundo<input id="siteBackgroundColor" type="color"></label></div></div>
+      <div class="site-card site-active"><label class="check-line"><input id="siteHeroActive" type="checkbox"> Exibir banner principal</label></div>
+      <div class="modal-actions"><button type="button" class="ghost-btn" id="resetSiteBtn">Restaurar padrão</button><button class="primary-btn" id="saveSiteBtn" type="submit">Salvar alterações</button></div>
+      <div id="siteFormError" class="error"></div>
+    </form>
   </section>
 </main>
 </div>

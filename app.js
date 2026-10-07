@@ -221,6 +221,161 @@ function closeLookPage(){
   document.getElementById("lookPage").setAttribute("aria-hidden","true");
 }
 
+
+
+function openStyleDiscovery(){
+  closePanels();
+  document.getElementById("modalContent").innerHTML=styleDiscoveryStart();
+  document.getElementById("modal").classList.add("open");
+}
+function closeStyleDiscovery(){document.getElementById("modal").classList.remove("open")}
+
+const styleQuiz={
+  universe:null, step:0,
+  answers:{animal:null,food:null,personality:null,admired:""}
+};
+
+function styleDiscoveryStart(){
+  styleQuiz.universe=null;styleQuiz.step=0;
+  styleQuiz.answers={animal:null,food:null,personality:null,admired:""};
+  return '<div class="style-discovery">'+
+    '<div class="style-discovery-head"><div><span class="eyebrow">UR KINGSLAY · MEU ESTILO</span><h2>Descubra seu estilo</h2><p>Responda só algumas perguntas e descubra qual estilo combina com você.</p></div><button class="style-close" onclick="closeStyleDiscovery()">×</button></div>'+
+    '<div class="style-progress"><i class="active"></i><i></i><i></i><i></i><i></i></div>'+
+    '<div class="style-step"><span class="style-kicker">PRIMEIRO, ESCOLHA UM UNIVERSO</span><h3>Com qual universo seu estilo combina?</h3><div class="style-options universe-options">'+
+      styleOption("anime","Anime","✦")+styleOption("series","Séries","▣")+styleOption("films","Filmes","◉")+styleOption("games","Jogos","⌁")+styleOption("trends","Tendências","↗")+styleOption("books","Livros","▤")+
+    '</div><button class="style-next" id="styleNext" disabled onclick="styleNextStep()">Começar <span>→</span></button></div>'+
+  '</div>';
+}
+function styleOption(value,label,icon){
+  return '<button class="style-option" data-value="'+value+'" onclick="selectStyleUniverse(\''+value+'\')"><span>'+icon+'</span><b>'+label+'</b></button>';
+}
+function selectStyleUniverse(value){
+  styleQuiz.universe=value;
+  document.querySelectorAll(".universe-options .style-option").forEach(b=>b.classList.toggle("selected",b.dataset.value===value));
+  const next=document.getElementById("styleNext");if(next)next.disabled=false;
+}
+function styleNextStep(){
+  if(!styleQuiz.universe)return;
+  styleQuiz.step=1;renderStyleQuestion();
+}
+function renderStyleQuestion(){
+  const q=[
+    {key:"animal",title:"Qual animal você escolheria para te acompanhar?",options:[["lobo","Lobo"],["gato","Gato"],["leao","Leão"],["raposa","Raposa"],["cobra","Cobra"],["aguia","Águia"]]},
+    {key:"food",title:"Qual você escolheria para comer agora?",options:[["hamburguer","Hambúrguer"],["sushi","Sushi"],["pizza","Pizza"],["ramen","Ramen"],["churrasco","Churrasco"],["doce","Doce"]]},
+    {key:"personality",title:"Qual mais combina com você?",options:[["reservado","Reservado"],["intenso","Intenso"],["divertido","Divertido"],["protetor","Protetor"],["curioso","Curioso"],["lider","Líder"]]}
+  ];
+  if(styleQuiz.step<=3){
+    const item=q[styleQuiz.step-1];
+    const selected=styleQuiz.answers[item.key];
+    const isLast=styleQuiz.step===3;
+    document.getElementById("modalContent").innerHTML=styleQuestionHtml(item,selected,isLast);
+  }else{
+    document.getElementById("modalContent").innerHTML=styleAdmiredHtml();
+  }
+}
+function styleQuestionHtml(item,selected,isLast){
+  return '<div class="style-discovery">'+
+    '<div class="style-discovery-head"><div><span class="eyebrow">UR KINGSLAY · MEU ESTILO</span><h2>Vamos descobrir.</h2></div><button class="style-close" onclick="closeStyleDiscovery()">×</button></div>'+
+    '<div class="style-progress">'+[1,2,3,4,5].map((n,i)=>'<i class="'+(n<=styleQuiz.step+1?"active":"")+'"></i>').join("")+'</div>'+
+    '<div class="style-step"><span class="style-kicker">PERGUNTA '+styleQuiz.step+' DE 4</span><h3>'+item.title+'</h3><div class="style-options quiz-options">'+item.options.map(o=>'<button class="style-option '+(selected===o[0]?"selected":"")+'" onclick="selectStyleAnswer(\''+item.key+'\',\''+o[0]+'\')"><b>'+o[1]+'</b></button>').join("")+'</div><div class="style-nav"><button class="style-back" onclick="styleBack()">← Voltar</button><button class="style-next" id="styleNext" '+(selected?"":"disabled")+' onclick="styleNextStep()">Próximo <span>→</span></button></div></div>'+
+  '</div>';
+}
+function selectStyleAnswer(key,value){
+  styleQuiz.answers[key]=value;
+  renderStyleQuestion();
+}
+function styleBack(){
+  if(styleQuiz.step<=1){openStyleDiscovery();return}
+  styleQuiz.step--;renderStyleQuestion();
+}
+function styleNextStep(){
+  if(styleQuiz.step===0){if(styleQuiz.universe){styleQuiz.step=1;renderStyleQuestion()}return}
+  const keys=["animal","food","personality"];
+  if(styleQuiz.step<=3&&!styleQuiz.answers[keys[styleQuiz.step-1]])return;
+  if(styleQuiz.step<3){styleQuiz.step++;renderStyleQuestion();return}
+  styleQuiz.step=4;renderStyleQuestion();
+}
+function styleAdmiredHtml(){
+  return '<div class="style-discovery">'+
+    '<div class="style-discovery-head"><div><span class="eyebrow">UR KINGSLAY · MEU ESTILO</span><h2>Última pergunta.</h2></div><button class="style-close" onclick="closeStyleDiscovery()">×</button></div>'+
+    '<div class="style-progress">'+[1,2,3,4,5].map((n,i)=>'<i class="'+(i<5?"active":"")+'"></i>').join("")+'</div>'+
+    '<div class="style-step"><span class="style-kicker">PERGUNTA 4 DE 4</span><h3>Quem é alguém que você admira?</h3><p class="style-helper">Pode ser cantor, personagem, atleta, artista ou qualquer pessoa que te inspire.</p><input id="styleAdmired" class="style-input" maxlength="80" placeholder="Ex.: Michael Jackson, Luffy, Neymar..." value="'+escapeHtml(styleQuiz.answers.admired)+'" oninput="styleQuiz.answers.admired=this.value">'+
+    '<div class="style-nav"><button class="style-back" onclick="styleBack()">← Voltar</button><button class="style-next" onclick="runStyleDiscovery()">Descobrir meu estilo <span>✦</span></button></div></div>'+
+  '</div>';
+}
+async function runStyleDiscovery(){
+  styleQuiz.answers.admired=(document.getElementById("styleAdmired")?.value||"").trim();
+  document.getElementById("modalContent").innerHTML='<div class="style-discovery style-analyzing"><div class="style-analyze-icon">✦</div><span class="eyebrow">UR KINGSLAY · IA DE ESTILO</span><h2>Analisando seu estilo...</h2><p>Cruzando suas respostas, o universo escolhido e o catálogo da UR Kingslay.</p><div class="style-dots"><i></i><i></i><i></i></div></div>';
+  await new Promise(r=>setTimeout(r,850));
+  const result=buildStyleDiscoveryResult(styleQuiz.answers,styleQuiz.universe);
+  document.getElementById("modalContent").innerHTML=renderStyleDiscoveryResult(result);
+}
+function buildStyleDiscoveryResult(a,universe){
+  const profiles={
+    misterioso:{name:"Aventureiro Misterioso",description:"Você parece gostar de explorar o mundo com curiosidade, mas prefere deixar que suas escolhas falem por você.",tags:["urbano","street","escuro","oversized","metal"],colors:["preto","cinza","prata"]},
+    doce:{name:"Doce e Destemido",description:"Você mistura leveza com personalidade. Gosta de conforto, mas não abre mão de ter algo que marque presença.",tags:["casual","leve","conforto","clean"],colors:["branco","bege","rosa","creme"]},
+    intenso:{name:"Presença Intensa",description:"Você gosta de peças que têm presença. Seu estilo tende a ser forte, direto e impossível de ignorar.",tags:["street","graphic","forte","urbano","oversized"],colors:["preto","vermelho","cinza"]},
+    elegante:{name:"Elegante Fora do Óbvio",description:"Você gosta de parecer bem sem precisar exagerar. Seu estilo mistura cuidado, equilíbrio e personalidade.",tags:["minimal","elegante","alfaiataria","clean"],colors:["preto","bege","branco","caramelo"]},
+    aventureiro:{name:"Espírito Aventureiro",description:"Você parece gostar de novidade, movimento e liberdade. Seu estilo funciona melhor quando pode acompanhar seu ritmo.",tags:["street","casual","esportivo","urbano"],colors:["verde","preto","cinza","bege"]}
+  };
+  let key="misterioso";
+  if(["divertido"].includes(a.personality))key="doce";
+  if(["intenso"].includes(a.personality)||["cobra","leao"].includes(a.animal))key="intenso";
+  if(["lider"].includes(a.personality)||["aguia"].includes(a.animal))key="elegante";
+  if(["curioso"].includes(a.personality)||["raposa"].includes(a.animal))key="aventureiro";
+  const p=profiles[key];
+  const universeNames={anime:"Anime",series:"Séries",films:"Filmes",games:"Jogos",trends:"Tendências",books:"Livros"};
+  const universeName=universeNames[universe]||"Seu universo";
+  const text=(a.admired||"").toLowerCase();
+  const universeBoost=universe==="anime"?["street","urbano","oversized"]:universe==="trends"?["minimal","clean","street"]:universe==="books"?["minimal","elegante"]:universe==="games"?["urbano","street"]:["casual","clean"];
+  const scored=state.products.filter(x=>x.is_fashion===true||x.category_id==="moda"||x.category_id==="acessorios").map(x=>{
+    const hay=[x.name,x.description,x.style_type,x.style_color,x.style_tags,x.style_fit,x.style_material,x.brand].filter(Boolean).join(" ").toLowerCase();
+    let score=0;
+    p.tags.forEach(t=>{if(hay.includes(t))score+=4});
+    p.colors.forEach(t=>{if(hay.includes(t))score+=3});
+    universeBoost.forEach(t=>{if(hay.includes(t))score+=2});
+    if(text&&hay.includes(text))score+=1;
+    if(x.category_id==="moda")score+=1;
+    if(x.featured)score+=.5;
+    return {p:x,score};
+  }).sort((a,b)=>b.score-a.score);
+  const chosen=[];const roles=["top","bottom","shoes","accessory"];
+  for(const role of roles){
+    const candidate=scored.find(v=>!chosen.some(c=>c.p.id===v.p.id)&&roleMatches(v.p,role));
+    if(candidate)chosen.push(candidate);
+  }
+  for(const v of scored){if(chosen.length>=4)break;if(!chosen.some(c=>c.p.id===v.p.id))chosen.push(v)}
+  return {profile:p,universe:universeName,chosen:chosen.map(v=>v.p),admired:a.admired||"alguém que inspira você",phrase:makeStylePhrase(p,universeName,a)};
+}
+function roleMatches(p,role){
+  const h=[p.name,p.description,p.style_type,p.style_tags].filter(Boolean).join(" ").toLowerCase();
+  if(role==="top")return /camiseta|camisa|blusa|cropped|regata|polo|moletom/.test(h);
+  if(role==="bottom")return /calça|shorts|bermuda|saia/.test(h);
+  if(role==="shoes")return /tênis|bota|sandália/.test(h);
+  return /boné|bucket|cinto|óculos|corrente|pulseira|bolsa|relógio/.test(h);
+}
+function makeStylePhrase(p,universe,a){
+  const endings={
+    Anime:"Você tem energia de protagonista: seu estilo não precisa gritar para ser lembrado.",
+    Séries:"Seu estilo parece ter história própria — e você é quem decide o próximo episódio.",
+    Filmes:"Você não precisa de roteiro para ter presença. Seu estilo já conta a história.",
+    Jogos:"Seu estilo é seu loadout: escolha suas peças e entre em cena do seu jeito.",
+    Tendências:"Você acompanha o que está em alta, mas não deixa a tendência escolher por você.",
+    Livros:"Seu estilo parece um personagem bem escrito: tem detalhes que só aparecem quando alguém presta atenção."
+  };
+  return endings[universe]||"Seu estilo começa nas escolhas que têm a sua cara.";
+}
+function renderStyleDiscoveryResult(r){
+  return '<div class="style-discovery style-result">'+
+    '<div class="style-discovery-head"><div><span class="eyebrow">UR KINGSLAY · SEU RESULTADO</span><h2>Seu estilo é...</h2></div><button class="style-close" onclick="closeStyleDiscovery()">×</button></div>'+
+    '<div class="style-result-profile"><span class="style-result-universe">'+escapeHtml(r.universe)+'</span><h3>'+escapeHtml(r.profile.name)+'</h3><p>'+escapeHtml(r.profile.description)+'</p><div class="style-tags">'+r.profile.tags.slice(0,3).map(t=>'<span>'+escapeHtml(t)+'</span>').join("")+'</div></div>'+
+    '<div class="style-phrase">“'+escapeHtml(r.phrase)+'”</div>'+
+    '<div class="style-look-head"><span>✦ LOOK DA SUA PERSONALIDADE</span><b>Escolhido entre os produtos disponíveis</b></div>'+
+    '<div class="style-discovery-products">'+r.chosen.map(p=>'<article onclick="openProduct(\''+p.id+'\')"><img src="'+p.image_url+'" alt="'+escapeHtml(p.name)+'"><div><b>'+escapeHtml(p.name)+'</b><span>'+money(p.price)+'</span></div></article>').join("")+'</div>'+
+    '<div class="style-result-actions"><button class="style-next" onclick="styleQuiz.step=0;document.getElementById(\"modalContent\").innerHTML=styleDiscoveryStart()">Fazer de novo <span>↻</span></button><button class="style-back" onclick="closeStyleDiscovery()">Voltar para a loja</button></div>'+
+  '</div>';
+}
+
 function clearFilters(){state.category="all";state.search="";document.getElementById("searchInput").value="";document.getElementById("sectionTitle").textContent="Em destaque";renderCategories();renderProducts()}
 function goHome(){clearFilters();window.scrollTo({top:0,behavior:"smooth"})}
 function showToast(t){const x=document.getElementById("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.classList.remove("show"),2400)}

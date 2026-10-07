@@ -190,7 +190,7 @@ async function generateStyle(id,occasion){
     )+'<div class="ai-note">A IA priorizou harmonia de cor, função da peça, silhueta e a ocasião escolhida.</div><div class="style-feedback"><b>O que você achou?</b><span>Essa combinação funciona para você?</span><div><button onclick="approveStyle()">✓ Combinou</button><button onclick="rejectStyle()">✕ Não combina</button><button onclick="redoStyle()">↻ Refazer tudo</button></div></div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
   }catch(e){
     console.error(e);
-    flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Não consegui montar agora</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">O catálogo ainda está em fase de teste. Quando houver peças compatíveis, a IA monta o look completo e escolhe os acessórios.</p><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Tentar outra ocasião</button></div>';
+    flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Não consegui montar agora</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">Não consegui concluir a análise agora. Tente novamente ou escolha outra ocasião; a IA cruza as peças ativas do catálogo para montar o look.</p><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Tentar outra ocasião</button></div>';
   }
 }
 function approveStyle(){

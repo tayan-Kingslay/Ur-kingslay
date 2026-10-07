@@ -11,13 +11,13 @@ const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"B
 async function boot(){
   try{
     const [p,c,o,r]=await Promise.all([
-      sb.from("products").select("*").eq("active",true).eq("is_fashion",true).order("featured",{ascending:false}).order("created_at",{ascending:false}),
+      sb.from("products").select("*").eq("active",true).order("featured",{ascending:false}).order("created_at",{ascending:false}),
       sb.from("categories").select("*").eq("active",true).order("sort_order"),
       sb.from("style_occasions").select("*").eq("active",true).order("sort_order"),
       sb.from("style_recommendations").select("*").order("priority")
     ]);
     if(p.error) throw p.error;
-    state.products=p.data||[];
+    state.products=(p.data||[]).filter(x=>x.is_fashion===true||x.category_id==="moda"||x.category_id==="acessorios");
     state.categories=c.data||[];
     state.occasions=o.data||[];
     if(r.error) throw r.error;
@@ -43,7 +43,7 @@ function renderCategories(){
 }
 
 function filtered(){
-  let list=state.products.filter(p=>(state.category==="all"||p.category_id===state.category)&&(!state.search||p.name.toLowerCase().includes(state.search.toLowerCase())||p.description.toLowerCase().includes(state.search.toLowerCase())));
+  let list=state.products.filter(p=>(state.category==="all"||p.category_id===state.category)&&(!state.search||p.name.toLowerCase().includes(state.search.toLowerCase())||(p.description||"").toLowerCase().includes(state.search.toLowerCase())));
   const sort=document.getElementById("sort").value;
   if(sort==="low")list.sort((a,b)=>Number(a.price)-Number(b.price));
   if(sort==="high")list.sort((a,b)=>Number(b.price)-Number(a.price));
@@ -167,7 +167,7 @@ function combineHtml(p){
 }
 function showStyleOccasions(id){
   const flow=document.getElementById("styleFlow");
-  flow.innerHTML='<div class="occasion-grid">'+state.occasions.map(o=>'<button onclick="generateStyle(\\''+id+'\\',\\''+o.id+'\\')">'+escapeHtml(o.name)+'</button>').join("")+'</div>';
+  flow.innerHTML='<div class="occasion-grid">'+state.occasions.map(o=>'<button onclick="generateStyle(\''+id+'\',\''+o.id+'\')">'+escapeHtml(o.name)+'</button>').join("")+'</div>';
 }
 async function generateStyle(id,occasion){
   const p=state.products.find(x=>x.id===id),o=state.occasions.find(x=>x.id===occasion);

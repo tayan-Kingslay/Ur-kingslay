@@ -182,11 +182,12 @@ async function generateStyle(id,occasion){
     const accessories=recs.filter(r=>r.role==="accessory");
     const garments=recs.filter(r=>r.role!=="accessory");
     const card=r=>'<div class="combine-item" onclick="openProduct(\''+r.id+'\')"><div class="combine-image-wrap"><img src="'+r.image_url+'" alt="'+escapeHtml(r.name)+'"><span>'+escapeHtml(r.role_label||"Complemento")+'</span></div><div><b>'+escapeHtml(r.name)+'</b><span>'+money(r.price)+'</span><small>'+escapeHtml(r.reason||"Escolhido pela IA")+'</small></div></div>';
+    state.currentStyle={baseId:id,occasionId:occasion,recs};
     flow.innerHTML='<div class="ai-result ai-result-premium"><div class="ai-result-head"><span>✦ Look montado pela IA</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><div class="ai-summary"><b>'+escapeHtml(p.name)+'</b><span>Base do look</span></div>'+(
       garments.length?'<div class="style-section"><div class="style-section-title"><b>Look principal</b><span>'+garments.length+' peças</span></div><div class="combine-grid">'+garments.map(card).join("")+'</div></div>':''
     )+(
       accessories.length?'<div class="style-section accessories-section"><div class="style-section-title"><b>✦ Acessórios escolhidos</b><span>'+accessories.length+' itens</span></div><div class="combine-grid">'+accessories.map(card).join("")+'</div></div>':''
-    )+'<div class="ai-note">A IA priorizou harmonia de cor, função da peça, silhueta e a ocasião escolhida.</div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
+    )+'<div class="ai-note">A IA priorizou harmonia de cor, função da peça, silhueta e a ocasião escolhida.</div><div class="style-feedback"><b>O que você achou?</b><span>Essa combinação funciona para você?</span><div><button onclick="approveStyle()">✓ Combinou</button><button onclick="rejectStyle()">✕ Não combina</button><button onclick="redoStyle()">↻ Refazer tudo</button></div></div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
   }catch(e){
     console.error(e);
     flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Não consegui montar agora</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">O catálogo ainda está em fase de teste. Quando houver peças compatíveis, a IA monta o look completo e escolhe os acessórios.</p><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Tentar outra ocasião</button></div>';

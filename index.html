@@ -90,6 +90,29 @@
 
 <div id="overlay" class="overlay" onclick="closePanels()"></div>
 <div id="modal" class="modal-wrap" onclick="closeModal(event)"><div class="modal" id="modalContent"></div></div>
+<section id="lookPage" class="look-page" aria-hidden="true">
+  <div class="look-page-head">
+    <button class="look-back" onclick="closeLookPage()">← Voltar</button>
+    <div><span class="eyebrow">UR KINGSLAY · IA STYLIST</span><h2>Seu look escolhido</h2></div>
+    <span class="look-occasion" id="lookOccasion"></span>
+  </div>
+  <div class="look-layout">
+    <div class="mannequin-card">
+      <div class="mannequin-head"><span>✦</span></div>
+      <div class="mannequin-neck"></div>
+      <div class="mannequin-body"></div>
+      <div class="mannequin-waist"></div>
+      <div class="mannequin-legs"></div>
+      <div class="mannequin-shoes"></div>
+      <div class="mannequin-accessories"><i></i><i></i><i></i></div>
+      <div class="mannequin-caption">VISUALIZAÇÃO DO LOOK</div>
+    </div>
+    <div class="look-products">
+      <div class="look-intro"><span>✦ COMBINAÇÃO APROVADA</span><h3>As peças que formam esse look</h3><p>Toque em qualquer produto para ir direto à TikTok Shop.</p></div>
+      <div id="lookProductGrid" class="look-product-grid"></div>
+    </div>
+  </div>
+</section>
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

@@ -33,7 +33,7 @@ async function unlockFromLink(){
     const {data,error}=await sb.functions.invoke("admin-access",{body:{access}});
     if(error) throw error;
     if(!data?.ok||!data?.action_link) throw new Error(data?.error||"Não foi possível liberar o ADM.");
-    location.replace(data.action_link);
+    const link=new URL(data.action_link); link.searchParams.set("redirect_to",location.origin+"/admin.html"); location.replace(link.toString());
     return true;
   }catch(e){
     document.body.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:DM Sans,Arial,sans-serif;background:#f7f2e8;color:#11110f"><div style="max-width:560px;text-align:center"><div style="font-size:40px;margin-bottom:16px">♛</div><h1>Acesso não autorizado</h1><p>Use o link privado do ADM para entrar.</p></div></div>';

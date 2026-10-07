@@ -167,7 +167,7 @@ function combineHtml(p){
 }
 function showStyleOccasions(id){
   const flow=document.getElementById("styleFlow");
-  flow.innerHTML='<div class="occasion-grid">'+state.occasions.map(o=>'<button onclick="generateStyle(\''+id+'\',\''+o.id+'\')">'+o.icon+' '+escapeHtml(o.name)+'</button>').join("")+'</div>';
+  flow.innerHTML='<div class="occasion-grid">'+state.occasions.map(o=>'<button onclick="generateStyle(\\''+id+'\\',\\''+o.id+'\\')">'+escapeHtml(o.name)+'</button>').join("")+'</div>';
 }
 async function generateStyle(id,occasion){
   const p=state.products.find(x=>x.id===id),o=state.occasions.find(x=>x.id===occasion);

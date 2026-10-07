@@ -232,12 +232,12 @@ function closeStyleDiscovery(){document.getElementById("modal").classList.remove
 
 const styleQuiz={
   universe:null, step:0,
-  answers:{animal:null,food:null,personality:null,admired:""}
+  answers:{animal:null,food:null,personality:null,admired:"",custom:{animal:"",food:"",personality:""}},customOpen:null
 };
 
 function styleDiscoveryStart(){
   styleQuiz.universe=null;styleQuiz.step=0;
-  styleQuiz.answers={animal:null,food:null,personality:null,admired:""};
+  styleQuiz.answers={animal:null,food:null,personality:null,admired:"",custom:{animal:"",food:"",personality:""}};styleQuiz.customOpen=null;
   return '<div class="style-discovery">'+
     '<div class="style-discovery-head"><div><span class="eyebrow">UR KINGSLAY · MEU ESTILO</span><h2>Descubra seu estilo</h2><p>Responda só algumas perguntas e descubra qual estilo combina com você.</p></div><button class="style-close" onclick="closeStyleDiscovery()">×</button></div>'+
     '<div class="style-progress"><i class="active"></i><i></i><i></i><i></i><i></i></div>'+
@@ -282,7 +282,19 @@ function styleQuestionHtml(item,selected,isLast){
 }
 function selectStyleAnswer(key,value){
   styleQuiz.answers[key]=value;
+  styleQuiz.customOpen=null;
   renderStyleQuestion();
+}
+function openStyleCustom(key){
+  styleQuiz.customOpen=key;
+  styleQuiz.answers[key]=null;
+  renderStyleQuestion();
+  setTimeout(()=>document.getElementById("styleCustomInput")?.focus(),0);
+}
+function updateStyleCustom(key,value){
+  styleQuiz.answers.custom[key]=value.trimStart();
+  const next=document.getElementById("styleNext");
+  if(next)next.disabled=!styleQuiz.answers.custom[key].trim();
 }
 function styleBack(){
   if(styleQuiz.step<=1){openStyleDiscovery();return}
@@ -291,7 +303,12 @@ function styleBack(){
 function styleNextStep(){
   if(styleQuiz.step===0){if(styleQuiz.universe){styleQuiz.step=1;renderStyleQuestion()}return}
   const keys=["animal","food","personality"];
-  if(styleQuiz.step<=3&&!styleQuiz.answers[keys[styleQuiz.step-1]])return;
+  if(styleQuiz.step<=3){
+    const key=keys[styleQuiz.step-1];
+    const hasPreset=!!styleQuiz.answers[key];
+    const hasCustom=!!styleQuiz.answers.custom[key]?.trim();
+    if(!hasPreset&&!hasCustom)return;
+  }
   if(styleQuiz.step<3){styleQuiz.step++;renderStyleQuestion();return}
   styleQuiz.step=4;renderStyleQuestion();
 }
@@ -327,6 +344,7 @@ function buildStyleDiscoveryResult(a,universe){
   const universeNames={anime:"Anime",series:"Séries",films:"Filmes",games:"Jogos",trends:"Tendências",books:"Livros"};
   const universeName=universeNames[universe]||"Seu universo";
   const text=(a.admired||"").toLowerCase();
+  const customText=Object.values(a.custom||{}).filter(Boolean).join(" ").toLowerCase();
   const universeBoost=universe==="anime"?["street","urbano","oversized"]:universe==="trends"?["minimal","clean","street"]:universe==="books"?["minimal","elegante"]:universe==="games"?["urbano","street"]:["casual","clean"];
   const scored=state.products.filter(x=>x.is_fashion===true||x.category_id==="moda"||x.category_id==="acessorios").map(x=>{
     const hay=[x.name,x.description,x.style_type,x.style_color,x.style_tags,x.style_fit,x.style_material,x.brand].filter(Boolean).join(" ").toLowerCase();
@@ -335,6 +353,7 @@ function buildStyleDiscoveryResult(a,universe){
     p.colors.forEach(t=>{if(hay.includes(t))score+=3});
     universeBoost.forEach(t=>{if(hay.includes(t))score+=2});
     if(text&&hay.includes(text))score+=1;
+    if(customText){customText.split(/\\s+/).filter(w=>w.length>2).forEach(w=>{if(hay.includes(w))score+=1})}
     if(x.category_id==="moda")score+=1;
     if(x.featured)score+=.5;
     return {p:x,score};

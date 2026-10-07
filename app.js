@@ -203,16 +203,18 @@ function approveStyle(){
 }
 function rejectStyle(){
   const flow=document.getElementById("styleFlow");
-  flow.innerHTML='<div class="style-feedback rejected"><b>Beleza. Vamos ajustar.</b><span>Escolha outra ocasião para eu tentar uma combinação diferente.</span><div><button onclick="showStyleOccasions(\''+state.currentStyle.baseId+'\\')">Escolher outra ocasião</button><button onclick="redoStyle()">↻ Refazer tudo</button></div></div>';
+  const baseId=state.currentStyle?.baseId;
+  if(!baseId)return;
+  flow.innerHTML='<div class="style-feedback rejected"><b>Beleza. Vamos ajustar.</b><span>Escolha outra ocasião para eu tentar uma combinação diferente.</span><div><button onclick="showStyleOccasions(state.currentStyle.baseId)">Escolher outra ocasião</button><button onclick="redoStyle()">↻ Refazer tudo</button></div></div>';
 }
 function redoStyle(){
-  if(state.currentStyle.baseId&&state.currentStyle.occasionId) generateStyle(state.currentStyle.baseId,state.currentStyle.occasionId);
+  if(state.currentStyle?.baseId&&state.currentStyle?.occasionId) generateStyle(state.currentStyle.baseId,state.currentStyle.occasionId);
 }
 function renderLookPage(recs,occasionId,baseId){
   const o=state.occasions.find(x=>x.id===occasionId),base=state.products.find(x=>x.id===baseId);
   document.getElementById("lookOccasion").textContent=(o?.icon||"✦")+" "+(o?.name||"Look");
   const all=[...(base?[{id:base.id,name:base.name,price:base.price,image_url:base.image_url,role_label:"Peça principal"}]:[]),...recs];
-  document.getElementById("lookProductGrid").innerHTML=all.map(p=>'<article class="look-product" onclick="buyNow(\''+p.id+'\\')"><img src="'+p.image_url+'" alt="'+escapeHtml(p.name)+'"><div><span>'+escapeHtml(p.role_label||"Peça")+'</span><b>'+escapeHtml(p.name)+'</b><strong>'+money(p.price)+'</strong><button>Ver na TikTok Shop →</button></div></article>').join("");
+  document.getElementById("lookProductGrid").innerHTML=all.map(p=>`<article class="look-product" onclick="buyNow('${p.id}')"><img src="${p.image_url}" alt="${escapeHtml(p.name)}"><div><span>${escapeHtml(p.role_label||"Peça")}</span><b>${escapeHtml(p.name)}</b><strong>${money(p.price)}</strong><button>Ver na TikTok Shop →</button></div></article>`).join("");
 }
 function closeLookPage(){
   document.getElementById("lookPage").classList.remove("open");

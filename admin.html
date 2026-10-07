@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UR Kingslay ADM</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+<div id="loginView" class="auth-view">
+  <div class="auth-card">
+    <div class="brand"><span>♛</span> UR Kingslay</div>
+    <span class="eyebrow">ÁREA ADMINISTRATIVA</span>
+    <h1>UR Kingslay ADM</h1>
+    <p>Entre para administrar o catálogo, imagens, links da TikTok Shop e configurações do AI Stylist.</p>
+    <form id="loginForm">
+      <label>E-mail<input id="email" type="email" autocomplete="username" required placeholder="seu e-mail"></label>
+      <label>Senha<input id="password" type="password" autocomplete="current-password" required placeholder="••••••••"></label>
+      <button class="primary-btn" type="submit">Entrar no ADM →</button>
+      <div id="loginError" class="error"></div>
+    </form>
+  </div>
+</div>
+
+<div id="appView" class="hidden">
+<header class="admin-header">
+  <div class="admin-brand"><span>♛</span><div><b>UR Kingslay ADM</b><small>Painel de catálogo</small></div></div>
+  <div class="header-actions"><a href="/" target="_blank">Ver loja ↗</a><button id="logoutBtn">Sair</button></div>
+</header>
+<main class="admin-shell">
+  <section class="stats">
+    <article><span>Produtos ativos</span><strong id="statActive">0</strong></article>
+    <article><span>Produtos inativos</span><strong id="statInactive">0</strong></article>
+    <article><span>Sem link TikTok</span><strong id="statNoLink">0</strong></article>
+    <article><span>Categorias</span><strong id="statCategories">0</strong></article>
+  </section>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="products">Produtos</button>
+    <button class="tab" data-tab="categories">Categorias</button>
+  </div>
+
+  <section id="productsTab" class="tab-panel">
+    <div class="toolbar">
+      <div><span class="eyebrow">CATÁLOGO</span><h2>Produtos</h2><p>Cadastre uma peça uma vez. Ela aparece automaticamente na vitrine.</p></div>
+      <div class="toolbar-actions"><input id="productSearch" placeholder="Buscar produto..."><button class="primary-btn" id="newProductBtn">+ Novo produto</button></div>
+    </div>
+    <div id="productList" class="product-list"></div>
+  </section>
+
+  <section id="categoriesTab" class="tab-panel hidden">
+    <div class="toolbar">
+      <div><span class="eyebrow">ESTRUTURA</span><h2>Categorias</h2><p>Controle as categorias exibidas na loja.</p></div>
+      <button class="primary-btn" id="newCategoryBtn">+ Nova categoria</button>
+    </div>
+    <div id="categoryList" class="category-list"></div>
+  </section>
+</main>
+</div>
+
+<div id="productModal" class="modal hidden">
+  <div class="modal-card large">
+    <div class="modal-head"><div><span class="eyebrow" id="productMode">NOVO PRODUTO</span><h2 id="productModalTitle">Cadastrar produto</h2></div><button class="close" data-close="productModal">×</button></div>
+    <form id="productForm">
+      <input type="hidden" id="productId">
+      <div class="form-grid">
+        <label class="full">Nome do produto<input id="pName" required maxlength="160"></label>
+        <label>Marca<input id="pBrand" placeholder="Ex.: Nike, Zara, UR Kingslay"></label>
+        <label>Categoria<select id="pCategory" required></select></label>
+        <label>Preço<input id="pPrice" type="number" min="0" step="0.01" required></label>
+        <label>Preço antigo<input id="pOldPrice" type="number" min="0" step="0.01"></label>
+        <label>Desconto (%)<input id="pDiscount" type="number" min="0" max="100" step="1" value="0"></label>
+        <label>Pix<input id="pPix" value="à vista no Pix"></label>
+        <label class="full">Link da TikTok Shop<input id="pBuyUrl" type="url" placeholder="Cole aqui o seu link de afiliado"></label>
+        <label class="full">Descrição<textarea id="pDescription" rows="3"></textarea></label>
+      </div>
+      <div class="image-box">
+        <div><span class="eyebrow">IMAGEM</span><h3>Foto principal</h3><p>JPG, PNG ou WebP. A imagem será enviada para o armazenamento do UR Kingslay.</p></div>
+        <div class="image-preview"><img id="imagePreview" alt=""><span id="imagePlaceholder">Sem imagem</span></div>
+        <label class="file-btn">Escolher imagem<input id="pImageFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+        <input id="pImageUrl" type="url" placeholder="ou use uma URL de imagem existente">
+      </div>
+      <div class="style-box">
+        <div><span class="eyebrow">AI STYLIST</span><h3>Dados de estilo</h3><p>Esses dados ajudam a IA a escolher peças complementares.</p></div>
+        <div class="form-grid">
+          <label>Tipo<input id="pStyleType" placeholder="top, bottom, shoes, layer, accessory"></label>
+          <label>Cor<input id="pStyleColor" placeholder="preto, branco, azul..."></label>
+          <label>Gênero<input id="pStyleGender" placeholder="unissex, feminino, masculino"></label>
+          <label>Caimento<input id="pStyleFit" placeholder="oversized, slim, wide..."></label>
+          <label>Material<input id="pStyleMaterial" placeholder="algodão, jeans..."></label>
+          <label>Peso de estilo<input id="pStyleWeight" type="number" min="1" max="10" value="1"></label>
+          <label>Acessório<input id="pAccessoryType" placeholder="colar, bolsa, relógio..."></label>
+          <label class="full">Tags de estilo<input id="pStyleTags" placeholder="streetwear, casual, noite, verão"></label>
+        </div>
+      </div>
+      <div class="checks">
+        <label><input id="pFashion" type="checkbox" checked> Produto de moda</label>
+        <label><input id="pFeatured" type="checkbox"> Destaque</label>
+        <label><input id="pActive" type="checkbox" checked> Ativo na loja</label>
+      </div>
+      <div class="modal-actions"><button type="button" class="ghost-btn" data-close="productModal">Cancelar</button><button class="primary-btn" id="saveProductBtn" type="submit">Publicar produto</button></div>
+      <div id="productFormError" class="error"></div>
+    </form>
+  </div>
+</div>
+
+<div id="categoryModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head"><div><span class="eyebrow">CATEGORIA</span><h2 id="categoryModalTitle">Nova categoria</h2></div><button class="close" data-close="categoryModal">×</button></div>
+    <form id="categoryForm">
+      <input type="hidden" id="categoryOriginalId">
+      <label>ID da categoria<input id="cId" required pattern="[a-z0-9_-]+" placeholder="ex.: streetwear"></label>
+      <label>Nome<input id="cName" required placeholder="Streetwear"></label>
+      <label>Ordem<input id="cOrder" type="number" value="10"></label>
+      <label class="check-line"><input id="cActive" type="checkbox" checked> Ativa na loja</label>
+      <div class="modal-actions"><button type="button" class="ghost-btn" data-close="categoryModal">Cancelar</button><button class="primary-btn" type="submit">Salvar categoria</button></div>
+      <div id="categoryFormError" class="error"></div>
+    </form>
+  </div>
+</div>
+<div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/config.js"></script>
+<script src="/admin.js"></script>
+</body></html>

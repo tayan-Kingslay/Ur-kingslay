@@ -26,18 +26,15 @@ $("signupForm").addEventListener("submit",async e=>{
  if(password.length<10){$("signupError").textContent="Use uma senha com pelo menos 10 caracteres.";return}
  $("signupBtn").disabled=true;
  try{
-   const {data,error}=await sb.auth.signUp({email,password});
-   if(error)throw error;
-   if(!data.session){
-     $("signupError").textContent="A conta foi criada. Confirme o e-mail enviado pelo Supabase e depois entre no ADM.";
-     return;
-   }
-   const {data:boot,error:bootError}=await sb.functions.invoke("bootstrap-admin",{body:{}});
+   const {data:boot,error:bootError}=await sb.functions.invoke("bootstrap-admin",{body:{email,password}});
    if(bootError)throw bootError;
    if(!boot?.ok)throw new Error(boot?.error||"Não foi possível criar o administrador.");
+   const {data:login,error:loginError}=await sb.auth.signInWithPassword({email,password});
+   if(loginError)throw loginError;
+   if(!login?.user)throw new Error("Não foi possível iniciar a sessão do administrador.");
    $("signupError").textContent="";
    toast("Administrador criado com sucesso.");
-   A.user=data.user;
+   A.user=login.user;
    showApp();
    await loadAll();
  }catch(e){

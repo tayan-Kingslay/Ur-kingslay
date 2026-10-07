@@ -8,6 +8,27 @@ function errText(e){return e?.message||e?.error_description||"Ocorreu um erro."}
 async function isAdmin(user){const {data,error}=await sb.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();return !error&&!!data}
 function rememberEmail(email){try{localStorage.setItem("ur-kingslay-admin-email",email)}catch{}}
 function restoreEmail(){try{const email=localStorage.getItem("ur-kingslay-admin-email");if(email&&$("email"))$("email").value=email}catch{}}
+function showApp(){const app=$("appView");if(app)app.classList.remove("hidden");}
+async function unlockFromLink(){
+  const params=new URLSearchParams(location.search),access=params.get("access");
+  if(!access)return false;
+  try{
+    const {data,error}=await sb.functions.invoke("admin-access",{body:{access}});
+    if(error)throw error;
+    if(!data?.ok||!data?.action_link)throw new Error(data?.error||"Não foi possível liberar o acesso.");
+    const link=new URL(data.action_link);
+    const tokenHash=link.searchParams.get("token_hash")||link.searchParams.get("token");
+    if(!tokenHash)throw new Error("O link de acesso não trouxe o token de autenticação.");
+    const {data:otp,error:otpError}=await sb.auth.verifyOtp({token_hash:tokenHash,type:"magiclink"});
+    if(otpError)throw otpError;
+    if(!otp?.user||!(await isAdmin(otp.user)))throw new Error("Acesso não autorizado.");
+    A.user=otp.user;history.replaceState({},document.title,location.pathname);showApp();await loadAll();return true;
+  }catch(e){
+    console.error("ADM access error",e);
+    document.body.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:DM Sans,Arial,sans-serif;background:#f7f2e8;color:#11110f"><div style="max-width:560px;text-align:center"><div style="font-size:40px;margin-bottom:16px">♛</div><h1>Não foi possível abrir o ADM</h1><p style="line-height:1.6">'+esc(errText(e))+'</p><p style="opacity:.7">Abra novamente o link privado de acesso.</p></div></div>';
+    return false;
+  }
+}
 async function boot(){
   const {data:{session}}=await sb.auth.getSession();
   if(session?.user && await isAdmin(session.user)){

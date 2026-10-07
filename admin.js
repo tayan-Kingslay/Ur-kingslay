@@ -9,38 +9,6 @@ async function isAdmin(user){const {data,error}=await sb.from("admin_users").sel
 function rememberEmail(email){try{localStorage.setItem("ur-kingslay-admin-email",email)}catch{}}
 function restoreEmail(){try{const email=localStorage.getItem("ur-kingslay-admin-email");if(email&&$("email"))$("email").value=email}catch{}}
 async function boot(){
- const {data:{session}}=await sb.auth.getSession();
- if(session?.user && await isAdmin(session.user)){
-  A.user=session.user;showApp();await loadAll();
- }else{
-  // Mantém a área ADM fora da tela de login; a sessão autorizada do navegador é usada automaticamente.
-  showApp();
-  toast("Sessão do ADM não encontrada neste navegador.");
- }
- sb.auth.onAuthStateChange((_event,session)=>{
-  if(session?.user){
-   setTimeout(async()=>{
-    if(await isAdmin(session.user)){A.user=session.user;showApp();await loadAll()}
-   },0)
-  }
- })
-}
-function showApp(){$("appView").classList.remove("hidden")}
-async function unlockFromLink(){
-  const access=new URLSearchParams(location.search).get("access");
-  if(!access) return false;
-  try{
-    const {data,error}=await sb.functions.invoke("admin-access",{body:{access}});
-    if(error) throw error;
-    if(!data?.ok||!data?.action_link) throw new Error(data?.error||"Não foi possível liberar o ADM.");
-    const link=new URL(data.action_link); link.searchParams.set("redirect_to",location.origin+"/admin.html"); location.replace(link.toString());
-    return true;
-  }catch(e){
-    document.body.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:DM Sans,Arial,sans-serif;background:#f7f2e8;color:#11110f"><div style="max-width:560px;text-align:center"><div style="font-size:40px;margin-bottom:16px">♛</div><h1>Acesso não autorizado</h1><p>Use o link privado do ADM para entrar.</p></div></div>';
-    return true;
-  }
-}
-async function boot(){
   const {data:{session}}=await sb.auth.getSession();
   if(session?.user && await isAdmin(session.user)){
     A.user=session.user;showApp();await loadAll();return;
@@ -82,7 +50,7 @@ $("newCategoryBtn").onclick=()=>{ $("cId").disabled=false;$("categoryForm").rese
 function editCategory(id){const c=A.categories.find(x=>x.id===id);if(!c)return;$("cId").disabled=false;$("categoryOriginalId").value=c.id;$("cId").value=c.id;$("cName").value=c.name;$("cOrder").value=c.sort_order;$("cActive").checked=!!c.active;$("cId").disabled=c.id==="all";$("categoryModalTitle").textContent="Editar categoria";openModal("categoryModal")}
 $("categoryForm").addEventListener("submit",async e=>{e.preventDefault();$("categoryFormError").textContent="";try{const oldId=$("categoryOriginalId").value;const payload={id:$("cId").value.trim(),name:$("cName").value.trim(),sort_order:Number($("cOrder").value||10),active:$("cActive").checked};let result;if(oldId){if(oldId!==payload.id){throw new Error("Por segurança, não altere o ID de uma categoria existente.")}result=await sb.from("categories").update({name:payload.name,sort_order:payload.sort_order,active:payload.active}).eq("id",oldId)}else result=await sb.from("categories").insert(payload);if(result.error)throw result.error;toast("Categoria salva");closeModal("categoryModal");await loadCategories()}catch(e){$("categoryFormError").textContent=errText(e)}})
 window.editProduct=editProduct;window.toggleProduct=toggleProduct;window.deleteProduct=deleteProduct;window.editCategory=editCategory;
-boot();
+
 
 const SITE_DEFAULTS={id:"home",hero_title:"Seu estilo.<br><em>Seu momento.</em>",hero_subtitle:"Encontre produtos, salve seus favoritos e descubra combinações para cada ocasião.",hero_button_text:"Explorar agora",hero_button_url:"#produtos",hero_image_url:"https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1400&q=85",hero_mobile_image_url:null,logo_text:"UR Kingslay",logo_image_url:null,logo_mobile_image_url:null,primary_color:"#11110f",accent_color:"#b99a67",background_color:"#f7f2e8",hero_active:true};
 let SITE={...SITE_DEFAULTS};

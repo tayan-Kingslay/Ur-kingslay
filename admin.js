@@ -1,4 +1,4 @@
-const sb=supabase.createClient(UR_CONFIG.supabaseUrl,UR_CONFIG.supabaseKey);
+const sb=supabase.createClient(UR_CONFIG.supabaseUrl,UR_CONFIG.supabaseKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"ur-kingslay-admin-auth"}});
 const A={products:[],categories:[],user:null};
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
@@ -6,6 +6,8 @@ const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"B
 function toast(t){const x=$("toast");x.textContent=t;x.classList.add("show");clearTimeout(window.__t);window.__t=setTimeout(()=>x.classList.remove("show"),2400)}
 function errText(e){return e?.message||e?.error_description||"Ocorreu um erro."}
 async function isAdmin(user){const {data,error}=await sb.from("admin_users").select("user_id").eq("user_id",user.id).maybeSingle();return !error&&!!data}
+function rememberEmail(email){try{localStorage.setItem("ur-kingslay-admin-email",email)}catch{}}
+function restoreEmail(){try{const email=localStorage.getItem("ur-kingslay-admin-email");if(email&&$("email"))$("email").value=email}catch{}}
 async function boot(){
  const {data:{session}}=await sb.auth.getSession();
  if(session?.user){
@@ -52,7 +54,7 @@ $("signupForm").addEventListener("submit",async e=>{
    $("signupBtn").disabled=false;
  }
 });
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="Entrando...";const email=$("email").value.trim().toLowerCase();const password=$("password").value;try{const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;if(!data?.user)throw new Error("O Supabase não retornou o usuário.");if(!(await isAdmin(data.user))){await sb.auth.signOut();throw new Error("Este Gmail está cadastrado, mas não está autorizado no ADM.");}A.user=data.user;showApp();$("loginError").textContent="";await loadAll();}catch(e){$("loginError").textContent=errText(e)}})
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="Entrando...";const email=$("email").value.trim().toLowerCase();const password=$("password").value;rememberEmail(email);try{const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;if(!data?.user)throw new Error("O Supabase não retornou o usuário.");if(!(await isAdmin(data.user))){await sb.auth.signOut();throw new Error("Este Gmail está cadastrado, mas não está autorizado no ADM.");}A.user=data.user;showApp();$("loginError").textContent="";await loadAll();}catch(e){$("loginError").textContent=errText(e)}})
 $("logoutBtn").onclick=async()=>{await sb.auth.signOut();showLogin()}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("productsTab").classList.toggle("hidden",b.dataset.tab!=="products");$("categoriesTab").classList.toggle("hidden",b.dataset.tab!=="categories");$("siteTab").classList.toggle("hidden",b.dataset.tab!=="site");if(b.dataset.tab==="site")loadSiteContent()})
 async function loadAll(){await Promise.all([loadProducts(),loadCategories()]);renderStats()}

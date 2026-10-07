@@ -25,40 +25,29 @@ async function boot(){
   }
  })
 }
-function showLogin(){$("loginView").classList.remove("hidden");$("signupView").classList.add("hidden");$("appView").classList.add("hidden")}
-function showSignup(){$("loginView").classList.add("hidden");$("signupView").classList.remove("hidden");$("appView").classList.add("hidden");$("signupError").textContent=""}
-function showApp(){$("loginView").classList.add("hidden");$("signupView").classList.add("hidden");$("appView").classList.remove("hidden")}
-$("showSignupBtn").onclick=showSignup;
-$("backLoginBtn").onclick=showLogin;
-$("signupForm").addEventListener("submit",async e=>{
- e.preventDefault();
- $("signupError").textContent="Criando administrador...";
- const email=$("signupEmail").value.trim();
- const password=$("signupPassword").value;
- const password2=$("signupPassword2").value;
- if(password!==password2){$("signupError").textContent="As senhas não conferem.";return}
- if(password.length<10){$("signupError").textContent="Use uma senha com pelo menos 10 caracteres.";return}
- $("signupBtn").disabled=true;
- try{
-   const {data:boot,error:bootError}=await sb.functions.invoke("bootstrap-admin",{body:{email,password}});
-   if(bootError)throw bootError;
-   if(!boot?.ok)throw new Error(boot?.error||"Não foi possível criar o administrador.");
-   const {data:login,error:loginError}=await sb.auth.signInWithPassword({email,password});
-   if(loginError)throw loginError;
-   if(!login?.user)throw new Error("Não foi possível iniciar a sessão do administrador.");
-   $("signupError").textContent="";
-   toast("Administrador criado com sucesso.");
-   A.user=login.user;
-   showApp();
-   await loadAll();
- }catch(e){
-   $("signupError").textContent=errText(e);
- }finally{
-   $("signupBtn").disabled=false;
- }
-});
-$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="Entrando...";const email=$("email").value.trim().toLowerCase();const password=$("password").value;rememberEmail(email);try{const {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;if(!data?.user)throw new Error("O Supabase não retornou o usuário.");if(!(await isAdmin(data.user))){await sb.auth.signOut();throw new Error("Este Gmail está cadastrado, mas não está autorizado no ADM.");}A.user=data.user;showApp();$("loginError").textContent="";await loadAll();}catch(e){$("loginError").textContent=errText(e)}})
-$("logoutBtn").onclick=async()=>{await sb.auth.signOut();showLogin()}
+function showApp(){$("appView").classList.remove("hidden")}
+async function unlockFromLink(){
+  const access=new URLSearchParams(location.search).get("access");
+  if(!access) return false;
+  try{
+    const {data,error}=await sb.functions.invoke("admin-access",{body:{access}});
+    if(error) throw error;
+    if(!data?.ok||!data?.action_link) throw new Error(data?.error||"Não foi possível liberar o ADM.");
+    location.replace(data.action_link);
+    return true;
+  }catch(e){
+    document.body.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:DM Sans,Arial,sans-serif;background:#f7f2e8;color:#11110f"><div style="max-width:560px;text-align:center"><div style="font-size:40px;margin-bottom:16px">♛</div><h1>Acesso não autorizado</h1><p>Use o link privado do ADM para entrar.</p></div></div>';
+    return true;
+  }
+}
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session?.user && await isAdmin(session.user)){
+    A.user=session.user;showApp();await loadAll();return;
+  }
+  if(await unlockFromLink()) return;
+  document.body.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:DM Sans,Arial,sans-serif;background:#f7f2e8;color:#11110f"><div style="max-width:560px;text-align:center"><div style="font-size:40px;margin-bottom:16px">♛</div><h1>ADM protegido</h1><p>Este painel não possui tela de login. Abra o link privado de acesso do UR Kingslay ADM.</p></div></div>';
+}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("productsTab").classList.toggle("hidden",b.dataset.tab!=="products");$("categoriesTab").classList.toggle("hidden",b.dataset.tab!=="categories");$("siteTab").classList.toggle("hidden",b.dataset.tab!=="site");if(b.dataset.tab==="site")loadSiteContent()})
 async function loadAll(){await Promise.all([loadProducts(),loadCategories()]);renderStats()}
 async function loadProducts(){const {data,error}=await sb.from("products").select("*").order("created_at",{ascending:false});if(error){toast(errText(error));return}A.products=data||[];renderProducts()}

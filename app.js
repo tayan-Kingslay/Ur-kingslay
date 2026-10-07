@@ -274,10 +274,18 @@ function renderStyleQuestion(){
   }
 }
 function styleQuestionHtml(item,selected,isLast){
+  const custom=styleQuiz.answers.custom?.[item.key]||"";
+  const customActive=styleQuiz.customOpen===item.key;
+  const canNext=!!selected||(customActive&&!!custom.trim());
   return '<div class="style-discovery">'+
     '<div class="style-discovery-head"><div><span class="eyebrow">UR KINGSLAY · MEU ESTILO</span><h2>Vamos descobrir.</h2></div><button class="style-close" onclick="closeStyleDiscovery()">×</button></div>'+
     '<div class="style-progress">'+[1,2,3,4,5].map((n,i)=>'<i class="'+(n<=styleQuiz.step+1?"active":"")+'"></i>').join("")+'</div>'+
-    '<div class="style-step"><span class="style-kicker">PERGUNTA '+styleQuiz.step+' DE 4</span><h3>'+item.title+'</h3><div class="style-options quiz-options">'+item.options.map(o=>'<button class="style-option '+(selected===o[0]?"selected":"")+'" onclick="selectStyleAnswer(\''+item.key+'\',\''+o[0]+'\')"><b>'+o[1]+'</b></button>').join("")+'</div><div class="style-nav"><button class="style-back" onclick="styleBack()">← Voltar</button><button class="style-next" id="styleNext" '+(selected?"":"disabled")+' onclick="styleNextStep()">Próximo <span>→</span></button></div></div>'+
+    '<div class="style-step"><span class="style-kicker">PERGUNTA '+styleQuiz.step+' DE 4</span><h3>'+item.title+'</h3><div class="style-options quiz-options">'+
+      item.options.map(o=>'<button class="style-option '+(selected===o[0]?"selected":"")+'" onclick="selectStyleAnswer(\''+item.key+'\',\''+o[0]+'\')"><b>'+o[1]+'</b></button>').join("")+
+      '<button class="style-option style-custom-option '+(customActive?"selected":"")+'" onclick="openStyleCustom(\''+item.key+'\')"><b>✎ Outro — escrever</b></button>'+
+    '</div>'+
+    (customActive?'<input id="styleCustomInput" class="style-input" maxlength="60" placeholder="Escreva aqui o que você prefere..." value="'+escapeHtml(custom)+'" oninput="updateStyleCustom(\''+item.key+'\',this.value)">':'')+
+    '<div class="style-nav"><button class="style-back" onclick="styleBack()">← Voltar</button><button class="style-next" id="styleNext" '+(canNext?"":"disabled")+' onclick="styleNextStep()">Próximo <span>→</span></button></div></div>'+
   '</div>';
 }
 function selectStyleAnswer(key,value){
@@ -353,7 +361,7 @@ function buildStyleDiscoveryResult(a,universe){
     p.colors.forEach(t=>{if(hay.includes(t))score+=3});
     universeBoost.forEach(t=>{if(hay.includes(t))score+=2});
     if(text&&hay.includes(text))score+=1;
-    if(customText){customText.split(/\\s+/).filter(w=>w.length>2).forEach(w=>{if(hay.includes(w))score+=1})}
+    if(customText){customText.split(/\s+/).filter(w=>w.length>2).forEach(w=>{if(hay.includes(w))score+=1})}
     if(x.category_id==="moda")score+=1;
     if(x.featured)score+=.5;
     return {p:x,score};

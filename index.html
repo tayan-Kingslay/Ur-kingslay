@@ -14,7 +14,7 @@
 <header class="site-header">
   <div class="header-inner">
     <button id="menuButton" class="icon-btn mobile-only" aria-label="Abrir menu" aria-expanded="false" type="button">☰</button>
-    <button class="brand" onclick="goHome()" aria-label="UR Kingslay"><span class="crown">♛</span><span>UR Kingslay</span></button>
+    <button class="brand" id="siteLogo" onclick="goHome()" aria-label="UR Kingslay"><span class="crown" id="siteLogoCrown">♛</span><img id="siteLogoImg" alt="UR Kingslay" style="display:none"><span id="siteLogoText">UR Kingslay</span></button>
     <div class="header-actions">
       <button class="icon-btn" onclick="focusSearch()" aria-label="Buscar">⌕</button>
       <button class="icon-btn" onclick="openFavorites()" aria-label="Favoritos">♡<b id="favoriteCount">0</b></button>
@@ -33,18 +33,7 @@
 </header>
 
 <main>
-<section class="hero">
-  <div class="hero-image-wrap">
-    <img src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1400&q=85" alt="Coleção UR Kingslay">
-    <div class="hero-shade"></div>
-    <div class="hero-content">
-      <span class="eyebrow">UR KINGSLAY</span>
-      <h1>Seu estilo.<br><em>Seu momento.</em></h1>
-      <p>Encontre produtos, salve seus favoritos e descubra combinações para cada ocasião.</p>
-      <button class="dark-btn" onclick="document.getElementById('produtos').scrollIntoView({behavior:'smooth'})">Explorar agora <span>→</span></button>
-    </div>
-  </div>
-</section>
+<section class="hero" id="heroSection"><div class="hero-image-wrap"><img id="heroImage" src="https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1400&q=85" alt="Coleção UR Kingslay"><div class="hero-shade"></div><div class="hero-content"><span class="eyebrow" id="heroBrand">UR KINGSLAY</span><h1 id="heroTitle">Seu estilo.<br><em>Seu momento.</em></h1><p id="heroSubtitle">Encontre produtos, salve seus favoritos e descubra combinações para cada ocasião.</p><button class="dark-btn" id="heroButton">Explorar agora <span>→</span></button></div></div></section>
 
 <section class="categories-strip">
   <div class="section-title centered"><span>—</span><h2>Categorias</h2><span>—</span></div>

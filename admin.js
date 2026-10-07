@@ -11,8 +11,41 @@ async function boot(){
  if(session?.user&&await isAdmin(session.user)){A.user=session.user;showApp();await loadAll()}else{showLogin()}
  sb.auth.onAuthStateChange(async(_event,session)=>{if(session?.user&&await isAdmin(session.user)){A.user=session.user;showApp();await loadAll()}else if(!session){showLogin()}})
 }
-function showLogin(){$("loginView").classList.remove("hidden");$("appView").classList.add("hidden")}
-function showApp(){$("loginView").classList.add("hidden");$("appView").classList.remove("hidden")}
+function showLogin(){$("loginView").classList.remove("hidden");$("signupView").classList.add("hidden");$("appView").classList.add("hidden")}
+function showSignup(){$("loginView").classList.add("hidden");$("signupView").classList.remove("hidden");$("appView").classList.add("hidden");$("signupError").textContent=""}
+function showApp(){$("loginView").classList.add("hidden");$("signupView").classList.add("hidden");$("appView").classList.remove("hidden")}
+$("showSignupBtn").onclick=showSignup;
+$("backLoginBtn").onclick=showLogin;
+$("signupForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ $("signupError").textContent="Criando administrador...";
+ const email=$("signupEmail").value.trim();
+ const password=$("signupPassword").value;
+ const password2=$("signupPassword2").value;
+ if(password!==password2){$("signupError").textContent="As senhas não conferem.";return}
+ if(password.length<10){$("signupError").textContent="Use uma senha com pelo menos 10 caracteres.";return}
+ $("signupBtn").disabled=true;
+ try{
+   const {data,error}=await sb.auth.signUp({email,password});
+   if(error)throw error;
+   if(!data.session){
+     $("signupError").textContent="A conta foi criada. Confirme o e-mail enviado pelo Supabase e depois entre no ADM.";
+     return;
+   }
+   const {data:boot,error:bootError}=await sb.functions.invoke("bootstrap-admin",{body:{}});
+   if(bootError)throw bootError;
+   if(!boot?.ok)throw new Error(boot?.error||"Não foi possível criar o administrador.");
+   $("signupError").textContent="";
+   toast("Administrador criado com sucesso.");
+   A.user=data.user;
+   showApp();
+   await loadAll();
+ }catch(e){
+   $("signupError").textContent=errText(e);
+ }finally{
+   $("signupBtn").disabled=false;
+ }
+});
 $("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="Entrando...";const {error}=await sb.auth.signInWithPassword({email:$("email").value.trim(),password:$("password").value});if(error){$("loginError").textContent=errText(error)}else{$("loginError").textContent=""}})
 $("logoutBtn").onclick=async()=>{await sb.auth.signOut();showLogin()}
 document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active");$("productsTab").classList.toggle("hidden",b.dataset.tab!=="products");$("categoriesTab").classList.toggle("hidden",b.dataset.tab!=="categories")})

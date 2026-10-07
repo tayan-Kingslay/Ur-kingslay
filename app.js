@@ -11,7 +11,7 @@ const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"B
 async function boot(){
   try{
     const [p,c,o,r]=await Promise.all([
-      sb.from("products").select("*").eq("active",true).order("featured",{ascending:false}).order("created_at",{ascending:false}),
+      sb.from("products").select("*").eq("active",true).eq("is_fashion",true).order("featured",{ascending:false}).order("created_at",{ascending:false}),
       sb.from("categories").select("*").eq("active",true).order("sort_order"),
       sb.from("style_occasions").select("*").eq("active",true).order("sort_order"),
       sb.from("style_recommendations").select("*").order("priority")

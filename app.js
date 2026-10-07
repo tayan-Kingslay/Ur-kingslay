@@ -169,17 +169,22 @@ function showStyleOccasions(id){
   const flow=document.getElementById("styleFlow");
   flow.innerHTML='<div class="occasion-grid">'+state.occasions.map(o=>'<button onclick="generateStyle(\''+id+'\',\''+o.id+'\')">'+o.icon+' '+escapeHtml(o.name)+'</button>').join("")+'</div>';
 }
-function generateStyle(id,occasion){
+async function generateStyle(id,occasion){
   const p=state.products.find(x=>x.id===id),o=state.occasions.find(x=>x.id===occasion);
   if(!p||!o)return;
-  const ids=state.recommendations
-    .filter(x=>x.product_id===p.id&&x.occasion_id===o.id)
-    .sort((a,b)=>a.priority-b.priority)
-    .map(x=>x.recommended_product_id)
-    .filter(id=>state.products.some(x=>x.id===id))
-    .slice(0,3);
   const flow=document.getElementById("styleFlow");
-  flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Combinação sugerida</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">Partindo de <b>'+escapeHtml(p.name)+'</b>, estas peças completam o visual para essa ocasião.</p><div class="combine-grid">'+ids.map(x=>{const r=state.products.find(q=>q.id===x);return '<div class="combine-item" onclick="openProduct(\''+r.id+'\')"><img src="'+r.image_url+'" alt="'+escapeHtml(r.name)+'"><div><b>'+escapeHtml(r.name)+'</b><span>'+money(r.price)+'</span></div></div>'}).join("")+'</div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
+  flow.innerHTML='<div class="ai-result loading-ai"><div class="ai-result-head"><span>✦ IA Stylist analisando...</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">Analisando cores, tipo da peça, ocasião e as opções disponíveis no catálogo.</p><div class="ai-loader"><i></i><i></i><i></i></div></div>';
+  try{
+    const {data,error}=await sb.functions.invoke("ai-stylist",{body:{product_id:id,occasion_id:occasion}});
+    if(error)throw error;
+    const recs=(data?.recommendations||[]).filter(r=>state.products.some(x=>x.id===r.id)).slice(0,3);
+    if(!recs.length)throw new Error("A IA não encontrou combinações");
+    flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ '+escapeHtml(data.engine||"IA Stylist")+'</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">Partindo de <b>'+escapeHtml(p.name)+'</b>, a IA analisou o catálogo e escolheu estas peças para completar o look.</p><div class="combine-grid">'+recs.map(r=>'<div class="combine-item" onclick="openProduct(\''+r.id+'\')"><img src="'+r.image_url+'" alt="'+escapeHtml(r.name)+'"><div><b>'+escapeHtml(r.name)+'</b><span>'+money(r.price)+'</span><small>'+escapeHtml(r.reason||"Combinação sugerida pela IA")+'</small></div></div>').join("")+'</div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
+  }catch(e){
+    console.error(e);
+    const ids=state.recommendations.filter(x=>x.product_id===p.id&&x.occasion_id===o.id).sort((a,b)=>a.priority-b.priority).map(x=>x.recommended_product_id).filter(x=>state.products.some(q=>q.id===x)).slice(0,3);
+    flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Combinação sugerida</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">A IA está indisponível neste momento. Usei a combinação inteligente do catálogo como reserva.</p><div class="combine-grid">'+ids.map(x=>{const r=state.products.find(q=>q.id===x);return '<div class="combine-item" onclick="openProduct(\''+r.id+'\')"><img src="'+r.image_url+'" alt="'+escapeHtml(r.name)+'"><div><b>'+escapeHtml(r.name)+'</b><span>'+money(r.price)+'</span></div></div>'}).join("")+'</div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
+  }
 }
 
 function clearFilters(){state.category="all";state.search="";document.getElementById("searchInput").value="";document.getElementById("sectionTitle").textContent="Em destaque";renderCategories();renderProducts()}

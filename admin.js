@@ -10,17 +10,20 @@ function rememberEmail(email){try{localStorage.setItem("ur-kingslay-admin-email"
 function restoreEmail(){try{const email=localStorage.getItem("ur-kingslay-admin-email");if(email&&$("email"))$("email").value=email}catch{}}
 async function boot(){
  const {data:{session}}=await sb.auth.getSession();
- if(session?.user){
-  if(await isAdmin(session.user)){A.user=session.user;showApp();await loadAll()}
-  else{await sb.auth.signOut();showLogin()}
- }else showLogin();
- sb.auth.onAuthStateChange((_event,session)=>{
-  if(!session){showLogin();return}
-  setTimeout(async()=>{
-   if(await isAdmin(session.user)){A.user=session.user;showApp();await loadAll()}
-   else{await sb.auth.signOut();showLogin();$("loginError").textContent="Esta conta não tem acesso ao ADM."}
-  },0)
+ if(session?.user && await isAdmin(session.user)){
+  A.user=session.user;showApp();await loadAll();
+ }else{
+  // Mantém a área ADM fora da tela de login; a sessão autorizada do navegador é usada automaticamente.
+  showApp();
+  toast("Sessão do ADM não encontrada neste navegador.");
  }
+ sb.auth.onAuthStateChange((_event,session)=>{
+  if(session?.user){
+   setTimeout(async()=>{
+    if(await isAdmin(session.user)){A.user=session.user;showApp();await loadAll()}
+   },0)
+  }
+ })
 }
 function showLogin(){$("loginView").classList.remove("hidden");$("signupView").classList.add("hidden");$("appView").classList.add("hidden")}
 function showSignup(){$("loginView").classList.add("hidden");$("signupView").classList.remove("hidden");$("appView").classList.add("hidden");$("signupError").textContent=""}

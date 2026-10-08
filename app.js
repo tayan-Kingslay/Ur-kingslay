@@ -54,11 +54,11 @@ function productCard(p){
   return '<article class="product" onclick="openProduct(\''+p.id+'\')">'+
     (p.discount?'<span class="tag">'+p.discount+'% OFF</span>':'')+
     '<img src="'+p.image_url+'" alt="'+escapeHtml(p.name)+'" loading="lazy">'+
-    '<div class="stars">★★★★★ <small>4.8</small></div>'+
+    '<div class="stars">4.8</div>'+
     '<h3>'+escapeHtml(p.name)+'</h3>'+
     (p.old_price?'<div class="old">'+money(p.old_price)+'</div>':'')+
     '<div class="price">'+money(p.price)+'</div><div class="pix">'+escapeHtml(p.pix_label)+'</div>'+
-    '<div class="product-hint">Toque para ver opções →</div></article>';
+    '<div class="product-hint">Toque para ver opções</div></article>';
 }
 
 function filterCategory(c){
@@ -142,9 +142,9 @@ async function openProduct(id){
   '<div class="eyebrow">UR KINGSLAY</div><h2>'+escapeHtml(p.name)+'</h2><div class="stars">★★★★★ 4.8</div>'+
   (p.old_price?'<div class="old">'+money(p.old_price)+'</div>':'')+'<div class="price">'+money(p.price)+'</div>'+
   '<p class="pix">'+escapeHtml(p.pix_label)+'</p><p class="description">'+escapeHtml(p.description)+'</p>'+
-  '<div class="modal-actions"><button class="option-btn primary" onclick="addCart(\''+p.id+'\');closeModal()">🛒 Carrinho</button>'+
-  '<button class="option-btn favorite '+(fav?"selected":"")+'" onclick="toggleFavorite(\''+p.id+'\');openProduct(\''+p.id+'\')">'+(fav?"♥":"♡")+' Favoritar</button>'+
-  '<button class="option-btn buy-now" onclick="buyNow(\''+p.id+'\')">Comprar agora <span>→</span></button></div>'+
+  '<div class="modal-actions"><button class="option-btn primary" onclick="addCart(\''+p.id+'\');closeModal()">Carrinho</button>'+
+  '<button class="option-btn favorite '+(fav?"selected":"")+'" onclick="toggleFavorite(\''+p.id+'\');openProduct(\''+p.id+'\')">'+(fav?"Favoritado":"Favoritar")+' Favoritar</button>'+
+  '<button class="option-btn buy-now" onclick="buyNow(\''+p.id+'\')">Comprar agora</button></div>'+
   combineHtml(p)+'</div></div>';
   document.getElementById("modal").classList.add("open");
 }
@@ -155,68 +155,6 @@ function buyNow(id){
   if(p?.buy_url)window.open(p.buy_url,"_blank","noopener,noreferrer");
   else showToast("O link da TikTok Shop deste produto ainda não foi cadastrado");
 }
-
-function combineHtml(p){
-  if(!p.is_fashion)return "";
-  return '<section class="combine-box"><div class="eyebrow">UR KINGSLAY · ESTILO</div><h3>✦ Combinar Estilo</h3><p>Escolha a ocasião e eu monto uma combinação usando o catálogo.</p><button class="combine-start" onclick="showStyleOccasions(\''+p.id+'\')">Combinar meu estilo ✦</button><div id="styleFlow"></div></section>';
-}
-function showStyleOccasions(id){
-  const flow=document.getElementById("styleFlow");
-  flow.innerHTML='<div class="occasion-grid">'+state.occasions.map(o=>'<button onclick="generateStyle(\''+id+'\',\''+o.id+'\')">'+escapeHtml(o.name)+'</button>').join("")+'</div>';
-}
-async function generateStyle(id,occasion){
-  const p=state.products.find(x=>x.id===id),o=state.occasions.find(x=>x.id===occasion);
-  if(!p||!o)return;
-  const flow=document.getElementById("styleFlow");
-  flow.innerHTML='<div class="ai-result loading-ai"><div class="ai-result-head"><span>✦ IA Stylist analisando</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><div class="ai-steps"><span>Cor</span><i>•</i><span>Silhueta</span><i>•</i><span>Peças</span><i>•</i><span>Acessórios</span></div><p class="ai-copy">Cruzando a peça principal com a ocasião, cores, proporções e os acessórios disponíveis.</p><div class="ai-loader"><i></i><i></i><i></i></div></div>';
-  try{
-    const {data,error}=await sb.functions.invoke("ai-stylist",{body:{product_id:id,occasion_id:occasion}});
-    if(error)throw error;
-    const recs=(data?.recommendations||[]).filter(r=>state.products.some(x=>x.id===r.id)).slice(0,5);
-    if(!recs.length)throw new Error("A IA não encontrou combinações");
-    const accessories=recs.filter(r=>r.role==="accessory");
-    const garments=recs.filter(r=>r.role!=="accessory");
-    const card=r=>'<div class="combine-item" onclick="openProduct(\''+r.id+'\')"><div class="combine-image-wrap"><img src="'+r.image_url+'" alt="'+escapeHtml(r.name)+'"><span>'+escapeHtml(r.role_label||"Complemento")+'</span></div><div><b>'+escapeHtml(r.name)+'</b><span>'+money(r.price)+'</span><small>'+escapeHtml(r.reason||"Escolhido pela IA")+'</small></div></div>';
-    state.currentStyle={baseId:id,occasionId:occasion,recs};
-    flow.innerHTML='<div class="ai-result ai-result-premium"><div class="ai-result-head"><span>✦ Look montado pela IA</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><div class="ai-summary"><b>'+escapeHtml(p.name)+'</b><span>Base do look</span></div>'+(
-      garments.length?'<div class="style-section"><div class="style-section-title"><b>Look principal</b><span>'+garments.length+' peças</span></div><div class="combine-grid">'+garments.map(card).join("")+'</div></div>':''
-    )+(
-      accessories.length?'<div class="style-section accessories-section"><div class="style-section-title"><b>✦ Acessórios escolhidos</b><span>'+accessories.length+' itens</span></div><div class="combine-grid">'+accessories.map(card).join("")+'</div></div>':''
-    )+'<div class="ai-note">A IA priorizou harmonia de cor, função da peça, silhueta e a ocasião escolhida.</div><div class="style-feedback"><b>O que você achou?</b><span>Essa combinação funciona para você?</span><div><button onclick="approveStyle()">✓ Combinou</button><button onclick="rejectStyle()">✕ Não combina</button><button onclick="redoStyle()">↻ Refazer tudo</button></div></div><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Escolher outra ocasião</button></div>';
-  }catch(e){
-    console.error(e);
-    flow.innerHTML='<div class="ai-result"><div class="ai-result-head"><span>✦ Não consegui montar agora</span><small>'+o.icon+' '+escapeHtml(o.name)+'</small></div><p class="ai-copy">Não consegui concluir a análise agora. Tente novamente ou escolha outra ocasião; a IA cruza as peças ativas do catálogo para montar o look.</p><button class="change-occasion" onclick="showStyleOccasions(\''+id+'\')">Tentar outra ocasião</button></div>';
-  }
-}
-function approveStyle(){
-  if(!state.currentStyle.recs.length)return;
-  renderLookPage(state.currentStyle.recs,state.currentStyle.occasionId,state.currentStyle.baseId);
-  document.getElementById("modal").classList.remove("open");
-  document.getElementById("lookPage").classList.add("open");
-  document.getElementById("lookPage").setAttribute("aria-hidden","false");
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-function rejectStyle(){
-  const flow=document.getElementById("styleFlow");
-  const baseId=state.currentStyle?.baseId;
-  if(!baseId)return;
-  flow.innerHTML='<div class="style-feedback rejected"><b>Beleza. Vamos ajustar.</b><span>Escolha outra ocasião para eu tentar uma combinação diferente.</span><div><button onclick="showStyleOccasions(state.currentStyle.baseId)">Escolher outra ocasião</button><button onclick="redoStyle()">↻ Refazer tudo</button></div></div>';
-}
-function redoStyle(){
-  if(state.currentStyle?.baseId&&state.currentStyle?.occasionId) generateStyle(state.currentStyle.baseId,state.currentStyle.occasionId);
-}
-function renderLookPage(recs,occasionId,baseId){
-  const o=state.occasions.find(x=>x.id===occasionId),base=state.products.find(x=>x.id===baseId);
-  document.getElementById("lookOccasion").textContent=(o?.icon||"✦")+" "+(o?.name||"Look");
-  const all=[...(base?[{id:base.id,name:base.name,price:base.price,image_url:base.image_url,role_label:"Peça principal"}]:[]),...recs];
-  document.getElementById("lookProductGrid").innerHTML=all.map(p=>`<article class="look-product" onclick="buyNow('${p.id}')"><img src="${p.image_url}" alt="${escapeHtml(p.name)}"><div><span>${escapeHtml(p.role_label||"Peça")}</span><b>${escapeHtml(p.name)}</b><strong>${money(p.price)}</strong><button>Ver na TikTok Shop →</button></div></article>`).join("");
-}
-function closeLookPage(){
-  document.getElementById("lookPage").classList.remove("open");
-  document.getElementById("lookPage").setAttribute("aria-hidden","true");
-}
-
-
 
 function clearFilters(){state.category="all";state.search="";document.getElementById("searchInput").value="";document.getElementById("sectionTitle").textContent="Em destaque";renderCategories();renderProducts()}
 function goHome(){clearFilters();window.scrollTo({top:0,behavior:"smooth"})}

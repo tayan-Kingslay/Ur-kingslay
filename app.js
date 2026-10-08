@@ -1,6 +1,6 @@
 const sb=supabase.createClient(UR_CONFIG.supabaseUrl,UR_CONFIG.supabaseKey);
 const state={
-  products:[],categories:[],occasions:[],recommendations:[],
+  products:[],categories:[],
   category:"all",search:"",
   cart:JSON.parse(localStorage.getItem("ur-kingslay-cart")||"[]"),
   favorites:JSON.parse(localStorage.getItem("ur-kingslay-favorites")||"[]"),
@@ -13,15 +13,11 @@ async function boot(){
     const [p,c,o,r]=await Promise.all([
       sb.from("products").select("*").eq("active",true).order("featured",{ascending:false}).order("created_at",{ascending:false}),
       sb.from("categories").select("*").eq("active",true).order("sort_order"),
-      sb.from("style_occasions").select("*").eq("active",true).order("sort_order"),
-      sb.from("style_recommendations").select("*").order("priority")
+
     ]);
     if(p.error) throw p.error;
     state.products=(p.data||[]).filter(x=>x.is_fashion===true||x.category_id==="moda"||x.category_id==="acessorios");
     state.categories=c.data||[];
-    state.occasions=o.data||[];
-    if(r.error) throw r.error;
-    state.recommendations=r.data||[];
     renderCategories();
     renderProducts();
     renderCart();

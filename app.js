@@ -139,13 +139,13 @@ async function openProduct(id){
   const fav=state.favorites.includes(p.id);
   document.getElementById("modalContent").innerHTML=
   '<div class="modal-product"><img src="'+p.image_url+'" alt="'+escapeHtml(p.name)+'"><div>'+
-  '<div class="eyebrow">UR KINGSLAY</div><h2>'+escapeHtml(p.name)+'</h2><div class="stars">★★★★★ 4.8</div>'+
+  '<div class="eyebrow">UR KINGSLAY</div><h2>'+escapeHtml(p.name)+'</h2><div class="stars">4.8</div>'+
   (p.old_price?'<div class="old">'+money(p.old_price)+'</div>':'')+'<div class="price">'+money(p.price)+'</div>'+
   '<p class="pix">'+escapeHtml(p.pix_label)+'</p><p class="description">'+escapeHtml(p.description)+'</p>'+
   '<div class="modal-actions"><button class="option-btn primary" onclick="addCart(\''+p.id+'\');closeModal()">Carrinho</button>'+
-  '<button class="option-btn favorite '+(fav?"selected":"")+'" onclick="toggleFavorite(\''+p.id+'\');openProduct(\''+p.id+'\')">'+(fav?"Favoritado":"Favoritar")+' Favoritar</button>'+
+  '<button class="option-btn favorite '+(fav?"selected":"")+'" onclick="toggleFavorite(\''+p.id+'\');openProduct(\''+p.id+'\')">'+(fav?"Favoritado":"Favoritar")+'</button>'+
   '<button class="option-btn buy-now" onclick="buyNow(\''+p.id+'\')">Comprar agora</button></div>'+
-  combineHtml(p)+'</div></div>';
+  '</div></div>';
   document.getElementById("modal").classList.add("open");
 }
 function closeModal(e){if(!e||e.target.id==="modal")document.getElementById("modal").classList.remove("open")}

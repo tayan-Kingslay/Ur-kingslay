@@ -10,10 +10,9 @@ const money=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"B
 
 async function boot(){
   try{
-    const [p,c,o,r]=await Promise.all([
+    const [p,c]=await Promise.all([
       sb.from("products").select("*").eq("active",true).order("featured",{ascending:false}).order("created_at",{ascending:false}),
-      sb.from("categories").select("*").eq("active",true).order("sort_order"),
-
+      sb.from("categories").select("*").eq("active",true).order("sort_order")
     ]);
     if(p.error) throw p.error;
     state.products=(p.data||[]).filter(x=>x.is_fashion===true||x.category_id==="moda"||x.category_id==="acessorios");
